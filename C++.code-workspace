@@ -1,0 +1,14 @@
+{
+    "folders": [
+        {
+            "path": "../.."
+        },
+        {
+            "name": "CppStudy",
+            "path": "CppStudy"
+        }
+    ],
+    "settings": {
+        "git.ignoreLimitWarning": true
+    }
+}
