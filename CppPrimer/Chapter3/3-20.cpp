@@ -2,13 +2,13 @@
  * @Author:
  * @Date:   2023-03-28 16:39:16
  * @Last Modified by:
- * @Last Modified time: 2023-03-28 17:22:01
+ * @Last Modified time: 2023-03-29 08:32:40
  * @Function:
  */
 #include <iostream>
 #include <vector>
 using namespace std;
-using as = vector<int>;
+using as = vector< int >;
 int main()
 {
     as v{1, 4, 19, 30, 232, 42, -21, 932, 412, 12, 1032, 12, -1, 23, -4};
@@ -22,7 +22,11 @@ int main()
     }
     cout << "=======================================" << endl;
     // task2
-    for (decltype(v.size()) i = 0; i <= v.size() / 2; i++) {
-        cout << v[i] + v[v.size() - 1 - i] << endl;
+    for (decltype(v.size()) i = 0; i <= v.size() / 2; i++)
+    {
+        if (i != v.size() - 1 - i)
+            cout << v[i] + v[v.size() - 1 - i] << endl;
+        else
+            cout << v[i] << endl;
     }
 }
