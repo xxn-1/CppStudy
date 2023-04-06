@@ -60,8 +60,7 @@ int main(int argc, char const *argv[])
     // {
     //     cout << x << " ";
     // }
-    unordered_set< Student, decltype(hasher) *, decltype(op) * > stus(
-        vs.begin(), vs.end(), 5, hasher, op);
+    unordered_set< Student, decltype(hasher) *, decltype(op) * > stus(3, hasher, op);
     cout << stus.bucket_count() << endl;
     for (auto s : stus)
     {
