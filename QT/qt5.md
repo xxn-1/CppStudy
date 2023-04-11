@@ -6,6 +6,8 @@ QT
 
 #### QT概况
 
+
+
 QT将所有内容分为3部分：
 
 1. QT基本模块：定义了适用于所有平台的基础功能，是QT核心。基本模块的基础是QT Core模块，其他模块都依赖于该模块。基本模块包括：
@@ -405,3 +407,504 @@ void Person::setName(const QString &name)
 ##### 数据类型定义
 
 ![image-20230407164147638](https://pic.imgdb.cn/item/642fdf56a682492fcc7d319a.png)
+
+##### 函数
+
+`<QtGlobal>`头文件包含一些常用函数，多以模板类型为参数。
+
+![image-20230410085221757](https://cdn.jsdelivr.net/gh/xxn-1/image/img/202304100852869.png)
+
+![image-20230410085306409](https://cdn.jsdelivr.net/gh/xxn-1/image/img/202304100853488.png)
+
+##### 常用宏
+
+`<QtGlobal>`头文件包含一些常用宏。
+
+* `QT_VERSION`，表示QT编译器版本，如果版本为QT5.9.1，则值为`0x050901`，可以使用`#if QT_VERSION >= 0x050901`
+* `QT_VERSION_CHECK`,表示QT版本号的整数形式。`#if (QT_VERSION>=QT_VERSION_CHECK(5,0,0))`
+* `QT_VERSION_STR`版本的字符串形式
+* `Q_BYTE_ORDER`表示内存的字节序，值为以下两种，`#if Q_BYTE_ORDER == Q_BIG_ENDIAN`
+  * `Q_BIG_ENDIAN`
+  * `Q_LITTLE_ENDIAN`
+* `Q_DECL_IMPORT`,`Q_DECL_EXPORT`:使用或设计共享库时，用于导入或导出库的内容。
+* `Q_DECL_OVERRIDE`:可以代替以前`override`的位置，转而使用该宏代替关键字。
+* `Q_DECL_FINAL`:代替原来的`final`关键字，表示不能被继承的类。
+* `Q_UNUSED(参数名)`在函数中定义却没有使用的变量可以使用该宏避免警告。
+* `foreach(x,容器变量)`代替以前的范围for
+* `forever{代码块}`构造一个无限循环
+* `qDebug("消息")`在debugger窗体内显示消息，若定义了宏`QT_NO_DEBUG_OUTPUT`则不作输出
+
+##### 容器类
+
+###### 顺序容器
+
+* `QList`
+* `QLinkedList`
+* `QVector`
+* `QStack`
+* `QQueue`
+
+###### 关联容器
+
+* `QMap`
+* `QMultiMap`
+* `QHash`
+* `QMultiHash`
+* `QSet`
+
+###### 容器类的访问遍历
+
+QT提供了两个版本的迭代器
+
+* `java版本迭代器`：
+
+  ![image-20230410091908417](https://cdn.jsdelivr.net/gh/xxn-1/image/img/202304100919499.png)
+
+  * 只读：`Q容器类型Iterator<T>it(容器变量)`
+  * 读写迭代器：`QMutable容器类型Iterator<T>it(容器变量)`
+
+  ```c++
+  QList<QString>list;
+  QListIterator<QString>i(list);
+  while(i.hasNext())qDebug()<<i.next();
+  // map
+  QMap<QString,QString>map;
+  QMutableMapIterator<QString,QString>i(map);
+  while(i.hasNext()){
+      if(i.next().key().endsWith("City"))i.remove();
+  }
+  ```
+
+  ![image-20230410092042210](https://cdn.jsdelivr.net/gh/xxn-1/image/img/202304100920291.png)
+
+* `sql版本迭代器`：比java版本更快
+
+  * 只读版本：`Q类型<T>::const_iterator`
+  * 读写版本：`Q类型<T>::iterator`
+
+  
+
+##### QT类库
+
+###### 基本模块：
+
+```
+Qt Core 其他模块都用到的核心非图形类
+Qt GUI 设计GUI界面的基础类，包括OpenGL
+Qt Multimedia 音频、视频、摄像头和广播功能的类
+Qt Multimedia Widgets 实现多媒体功能的界面组件类
+Qt Network 使网络编程更简单和轻便的类
+Qt QML 用于QML和JavaScript语言的类
+Qt Quick 用于构建具有定制用户界面的动态应用程序的声明框架
+Qt Quick Controls 创建桌面样式用户界面，基于Qt Quick的用户界面控件
+Qt Quick Dialogs 用于Qt Quick的系统对话框类型
+Qt Quick Layouts 用于Qt Quick2界面元素的布局项
+Qt SQL 使用SQL用于数据库操作的类
+Qt Test 用于应用程序和库进行单元测试的类
+Qt Widgets 用于构建GUI界面的C++图形组件类
+```
+
+###### 附加模块
+
+```
+Active Ot
+用于开发使用ActiveX和COM的Windows应用程序
+Qt 3D
+支持2D和3D渲染，提供用于开发近实时仿真系统的功能
+Qt Android Extras
+提供Android平台相关的API
+Qt Bluetooth
+提供访问蓝牙硬件的功能
+Qt Concurrent
+提供一些类，无需使用底层的线程控制就可以编写多线程程序
+Qt D-Bus
+使进程间通过D-Bus协议通信的一些类
+Qt Gamepad
+使Q应用程序支持游戏手柄硬件的使用
+Qt Image Formats
+支持附加图片格式的插件，包括TIFF、MNG、TGA、WBMP
+Qt Mac Extras
+提供macOS平台相关的API
+Qt NFC
+提供访问NFC(近场通信)硬件的功能
+Qt Positioning
+提供一些类，用于通过GPS卫星、WiFi等定位
+Qt Print Support
+提供一些用于打印控制的类
+Qt Purchasing
+提供一些类，在Q应用程序内实现应用内购买的功能
+Qt Sensors
+提供访问传感器硬件的功能，以识别运动和手势
+Qt Serial Bus
+访问串行工业总线的功能，目前只支持CAN和Modbus协议
+Qt SVG
+提供显示SVG图片文件的类
+用于实现服务器端(QML或C++应用程序)与客户端(HTML/JavaScript或QML应用
+Qt WebChannel
+程序)之间的P2P通信
+Qt WebEngine
+提供类和函数，实现在应用程序中嵌入网页内容
+提供兼容于RFC6455的WebSocket通信，WebSocket是实现客户端程序与远端主机进行
+Qt WebSockets
+双向通信的基于Web的协议
+Qt Windows Extras
+提供Windows平台相关的API
+Qt XML
+该模块不再维护了，应使用Qt Core中的QXmlStreamReader和QXmlStream Writer
+Qt XML Patterns
+提供对XPath、XQuery、XSLT和XML等的支持
+Qt Charts
+用于数据显示的二维图表组件
+Qt Data Visualization
+用于3D数据可视化显示的界面组件
+Qt Virtual Keyboard
+实现不同输入法的虚拟键盘框架
+
+```
+
+#### QString
+
+每个字符是一个16位的Qchar。
+
+常用函数：
+
+* `append()`
+* `prepend()`在前面追加
+* `toUpper`、`toLower`
+* `count(),size(),length()`三个等价
+* `trimmed`去首尾空格，`simplified`去掉首尾空格，且中间连续的空格用一个空格代替
+* `isNull`判断其是否未赋值，`isEmpty()`判断其是否为`\0`或未赋值
+* `section(seq,start,end)`提取以seq为分隔符，从start-end的字符串。
+
+#### 界面组件
+
+##### 常用
+
+使用最多的是`QLabel`（用于显示字符串）和`QLineEdit`（用于显示和输入字符串）。
+
+​	四个设置格式的函数：
+
+* `str = QString::number(total,'f',2)`，还支持设置进制
+* `str = QString::asprintf("%.2f",total)`
+* `str = str.setNum(total,'f',2)`支持设置数值进制
+* `str = str.sprintf("%.2f",total)`
+
+---
+
+QSpinBox用于整数的显示和输入，特殊的可以设置进制
+
+QDoubleSpinBox用于浮点数的显示和输入，特殊的可以设置小数位数
+
+---
+
+QSlider：滑动条，滑动设置数值
+
+QScrollBar：卷滚条，与滑动条类似还可以用于卷滚区域
+
+QProgressBar：进度条
+
+QDial：表盘式，通过转动表针获得输入值
+
+QLCDNumber：模仿LCD数字的显示组件，可以显示整数或浮点数
+
+---
+
+###### QLabel显示图片
+
+为其设置一个`QPixmap`显示图片，可进行缩放显示，通过`QLabel`的`setPixmap(pixmap)`函数设置图片。
+
+`qpixmap.load(filename)`加载图片
+
+```c++
+需要有一个图片缩放比例的变量
+    pixRatio = 1
+// 适应高度显示图片
+int H = ui->scrollArea->height();
+int realH = curPixmap.height(); // 真实高度
+pixRatio = float(H)/realH;
+Qpixmap pix = curPixmap.scaledToHeight(H-30) // 图片缩放到指定高度;
+ui->qlabel->setPixmap(pix);
+// 放大显示
+pixRatio = pixRatio*1.2;
+int w = pixRatio*curPixmap.width();
+int h = pixRatio*curPixmap.height();
+QPixmap pix = curPixmap.scaled(w,h);
+ui->qlabel->setPixmap(pix);
+
+// 实际大小显示
+```
+
+
+
+##### 时间日期：
+
+* `QTime`仅显示时间
+* `QDate`仅显示日期
+* `QDateTime`
+* `QTimeEdit`
+* `QDateEdit`
+* `QDateTimeEdit`
+* `QCalenderWidget`
+
+---
+
+**定时器**：用来处理周期性事件的一个对象`QTimer`
+
+```c++
+QTimer* timer = new QTimer(this);
+timer->stop();
+timer->setInterval(毫秒); // 设置定时周期
+其发出的信号为：timeout();
+// 需要编写槽函数接收。
+```
+
+---
+
+**计时器**：
+
+```c++
+QTime time;
+time.start(); // 开始
+time.stop(); // 停止
+```
+
+##### QComboBox
+
+下拉列表框组件类，提供下拉列表供选择，也可以用作QLineEdit输入，除了显示下拉列表外，每个列表项还可以关联一个`QVariant`类型的变量，存储一些不可见数据
+
+##### QPlainTextEdit
+
+多行普通文本编辑器。其文字内容以`QTextDocument`类型存储，可以使用对象的`document()`获得其指针。其包含函数，支持每次读取一行，读到回车结尾。
+
+**右键菜单设置：**编写槽函数`customContextMenuRequested()`
+
+```c++
+// 槽函数内容如下：
+QMenu* menu = ui->plainTextEdit->createStandardContextMenu();
+menu->exec(pos);
+```
+
+
+
+##### QTextEdit
+
+带格式多行文本编辑器
+
+##### QScrollArea
+
+子窗口大于其时进行滚动
+
+##### QFileDialog
+
+`QString dir = QFileDialog::getExistingDirectory()`在界面上弹出一个对话框输入文件名，以此返回
+
+`QFileDialog::getOpenFileNames()`获取文件列表
+
+##### QToolButton
+
+关联方式
+
+* 可以使用`setDefaultAction()`与某个action关联。
+
+  
+
+`setMenu()`可以再点击按钮后，出现一个菜单
+
+~~~c++
+QMenu *menu = new QMenu(this);
+menu.addAction(ui->actSelALL);
+ui->btn->setPopupMode(QToolButton::MenuButtonPopup); // 设置样式
+ui->btn->setMenu(menu);
+~~~
+
+
+
+##### QToolBox
+
+组件上右击，可以添加分组。每组都可以包含多个`QToolButton`
+
+##### QSplitter
+
+可以使用该组件分割界面，填充满整个工作区使用
+
+`setCentralWidger(ui->splitter)`;
+
+##### QListWidget
+
+QT中用于项处理组件有两类：
+
+* `Item Views`:基于模型/视图
+
+  * `QListView`
+  * `QTreeView`
+  * `QTableView`
+  * `QColumnView`
+  * 等
+
+* `Item Widgets`：直接将数据存储在每一个项中，如`QTreeWidget`存储在每个节点中。**每个从QWidget继承来的类都有信号customContextMenuRequested()，在鼠标右键时发射，我们在槽函数中创建菜单，最后使用exec(pos)执行**
+
+  * `QxxxWidget`
+
+  * `QTabWidget`：一个多页的容器类组件。
+
+  * `QListWidget`：存储多个项的列表组件，比较重要的是其`flags`标记，`item->setFlags(Qt:ItemIsSelectable|Qt:ItemIsEditable)`，一次设置多个标记
+
+    ```c++
+    Selectable:项是否可被选择，对应枚举值Qt:ItemIsSelectable.
+    Editable:项是否可被编辑，对应枚举值Qt:ItemIsEditable。
+    DragEnabled:.项是否可以被拖动，对应枚举值Qt:ItemIsDragEnabled。
+    DropEnabled:项是否可以接收拖放的项，对应枚举值Qt:ItemIsDropEnabled。.
+    UserCheckable:项是否可以被复选，若为true,项前面出现一个CheckBox,对应枚举值
+    Qt:ItemIsUserCheckable.
+    Enabled:项是否被使能，对应枚举值Qt:ItemIsEnabled。
+    Tristate:是否允许Check的第三种状态，若为false,则只有checked和unChecked两种状
+    态，对应枚举值Qt:ItemIsAutoTristate.
+    ```
+
+  
+
+  
+
+##### QTreeWidget
+
+**目录树组件**。每个节点设置一个自定义类型。
+
+需要定义两个自定义类型
+
+~~~c++
+enum
+treeItemType (itTopItem=1001,itGroupItem,itImageItem); // 创建的结点类型，自定义类型必须大于1000
+enum
+treeColNum{colItem=0,colItemType=l};//每个目录树列的编号，这里创建了两列，可以显示两列内容
+// 初始化内容如下
+QTreewidgetItem*item=new QTreewidgetItem(MainWindow:itTopItem);
+item->setIcon(MainWindow::colItem,icon);//第1列的图标
+item->setText(MainWindow::colItem,"图片文件")；//第l列的文字
+item->setText (MainWindow:colItemType,"type=itTopItem");//2
+item->setFlags (Qt:ItemIsSelectable Qt:ItemIsUserCheckable Qt:ItemIsEnabled
+Qt:ItemIsAutoTristate);
+item->setCheckstate(colItem,Qt:Checked);
+item->setData(Mainwindow:colItem,Qt:UserRole,QVariant (datastr)); // 为某一列设置一个角色数据，
+ui->treeFiles->addTopLevelItem(item);//添加顶层节点，每个树中只能添加一个顶层节点
+~~~
+
+* `addChild(item)`在目录下新建一个对象
+
+##### QDockWidget
+
+**停靠区域组件，这个停靠区域类似于显示项目的那种**。可以在QMainWindow窗口停靠，或在桌面最上层浮动的界面组件。
+
+`setAllowedAreas(Qt::DockWidgetAreas枚举类型)`设置允许停靠的区域
+
+`setFeatures`，值为`QDockWidget::DockWidgetFeature`的组合值
+
+```c++
+QDock Widget:Dock WidgetClosable:停靠区可关闭
+QDock Widget:Dock WidgetMovable:停靠区可移动。
+QDock Widget:Dock WidgetFloatable:停靠区可浮动。
+QDock Widget:Dock Widget VerticalTitleBar:在停靠区左侧显示垂直标题栏。
+QDock Widget::AllDock WidgetFeatures:使用以上所有特征。
+QDock Widget:NoDock WidgetFeatures::不能停靠、移动和关闭。
+```
+
+##### QTableWidget
+
+~~~c++
+// 需要两个枚举类自定义
+enum CellType{
+    // 提供字段列表，需要为每列提供一个字段，初始值一般从1001开始
+}
+
+enum FieldColNul{
+    // 提供上面对应字段的列号，从0开始。
+}
+ui->table->setHorizontalHeaderLabels(headerTexts ); // 一次性设置表头，参数是一个列表
+// 若还需要精细控制每个头
+使用QTableWidgetItem，结合for遍历头列表
+// 控制headerItem...代码块 = new QTableWidgetItem(headerTexts.at(i));
+ui->table->setHorizontalHeaderItem(i,headerItem);
+
+// 对于每个需要使用的表格都要new QTableWidgetItem对象
+ui->table->setItem(行号,类::列字段,item);
+~~~
+
+* 自动调节行高和列宽：`resize...()`
+* 设置表格内容编辑模式：`ui->table->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::SelectedClicked)`双击或获取焦点后单击，进入编辑模式
+* 设置行表头、列表头是否显示：`table->horizontalHeader()/verticalHeader()->setVisible(checked)`设置其可见
+* `table->setAlternatingRowColors(checked)`设置间隔行底色
+* `table->setSelectionBehaver(QAbstractItemView::SelectItems/SelectRows)`设置选择模式为单元格选择还是行选择
+
+#### 角色数据
+
+**对于role角色,常用的值有:**
+
+- **Qt::DisplayRole**        0      以文本方式显示数据(QString)
+- **Qt::DecorationRole**    1     将数据作为图标来装饰(QIcon,QPixmap)
+- **Qt::EditRole**           2      可编辑的数据信息显示(QString)
+- **Qt::ToolTipRole**        3      作为工具提示显示(QString)
+- **Qt::StatusTipRole**      4     作为状态栏中显示的数据(QString)
+- **Qt::WhatsThisRole**     5     作为帮助信息栏中显示的数据(QString)
+- **Qt::FontRole**           6     设置字体(QFont)
+- **Qt::TextAlignmentRole**  7    设置模型数据的文本对齐(Qt::AlignmentFlag)
+- **Qt::BackgroundRole**   8     设置模型数据的背景色(QBrush)
+- **Qt::ForegroundRole**   9     设置模型数据的前景色,比如字体(QBrush)
+- **Qt::UserRole 自定义数据**
+
+#### 模型和视图
+
+![image-20230410151627268](https://cdn.jsdelivr.net/gh/xxn-1/image/img/202304101516561.png)
+
+常用的QT已经定义好的模型类：
+
+* `QStringListModel`：处理字符串列表数据的模型类
+
+* `QStandardItemModel`：基于项数据的模型类，类型可以为任何。**搭配`QItemSelectionModel`可以提供单元格的行列等信息**
+
+  ```c++
+  theModel = new QStandardItemModel(行数，列数，this);
+  theSelection = new QItemSelectionModel(theModel);
+  ui->table->setModel(theModel);
+  ui->table->set
+      // 没写完
+  ```
+
+  
+
+* `QFileSystemModel`：文件系统的数据模型类，需要使用`setRootPath()`设置根目录，可以直接设置为`QDir::currentPath()`
+
+* `QSortFilterProxyModel`：与其他数据模型结合，提供排序和过滤功能的模型类
+
+* `QSqlQueryModel`：数据库sql查询结果的模型类
+
+* `QSqlTableModel`：数据库的一个数据表的模型类
+
+* `QSqlRelationalTableModel`：关系型数据库的数据模型类
+
+**自定义模型类：**继承以下类之一
+
+* `QAbstractItemModel`
+* `QAbstractListModel`
+* `QAstractTableModel`
+
+QT提供的视图组件如下：**组件通过setModel()直接显示数据**
+
+* `QListView`：显示单列的列表数据，适用于一维数据
+* `QTreeView`：显示树状结构数据
+* `QTableView`表格数据，适用于二维
+* `QColumnView`多个QListView显示多维数据
+* `QHeaderView`提供行表头或列表头的视图组件
+
+如：`QFileSystemModel`和`QTreeView`结合可以用目录树的形式显示本机的文件系统。
+
+##### 代理
+
+就是在视图组件上为编辑数据提供编辑器
+
+##### 模型索引
+
+数据模型基本形式是用行和列定义的表格数据，这并不意味底层数据是用二维数组存储，只是方便组件交互。
+
+要使用索引，**需要提供行号、列号、父项的模型索引**，一般**列表和表格**父项的索引模型只需要写`QModelIndex()`即可，即`QModelIndex index = model->index(1,2,QModelIndex())`。若是树型，根节点是`QModelIndex()`，若是下面的节点，假如B索引父节点索引为A，则提供A的。
+
+
+
