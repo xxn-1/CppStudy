@@ -358,6 +358,10 @@ transitions:[
 
 #### QML模块
 
+##### Qt
+
+`Qt.函数()`定义了许多全局函数
+
 ##### 自定义
 
 一个模块在一个类型命名空间中提供了版本类型和JS资源，能被导入使用
@@ -383,6 +387,11 @@ QT Quick所有可视项目都继承自`Item`。
 * `maptoItem(item,x,y)`从当前对象x,y处映射
 * `anchors`
 * `LayoutMirroring.enabled:true`开启镜像，`.childrenInherit:true`原本对象被锚定在父对象左侧，镜像后会显示在右侧
+
+**附加属性：**
+
+* `KeyNavigation`导航，可以设置按下方向键后的跳转，如：`KeyNavigation.right:对象id`按下右方向会跳转到对象id
+* `activeFocus`：bool值，返回其是否是焦点
 
 ##### Rectangle
 
@@ -569,3 +578,1114 @@ states:State{
   ```
 
   
+
+##### 键盘事件
+
+**键盘事件会传递给当前具有`focus:true`的对象，当前文档树中只能有一个对象获得焦点**
+
+```c
+focus:true
+Keys.onPreessed:{
+	event.accepted = true // 表示该焦点接受该键盘事件，注意，只有接受后，事件的传播才会停止 
+}
+```
+
+**焦点作用域：**为了解决导入组件是否请求了焦点这种未知情况下使用。
+
+在自定义组件中，要把`FocusScope`放在组件外
+
+```c
+FocusScope{ // 不可见组件，因此要使用子对象真正的组件属性来绑定
+    x:rectangle.x;
+    y:rectangle.y;
+    width:rectangle.width;
+    height:rectangle.height;
+    
+    Rectangle{
+        id:rectangle
+        anchors.centerIn:parent
+    }
+}
+```
+
+##### 定时器
+
+```c
+Timer{
+	interval:间隔ms
+	repeat:true // 设置是否重复触发
+	running:true // 开启
+	onTriggered:{触发}
+}
+```
+
+##### Loader动态加载组件
+
+可以设置直到真正需要的时候才被创建，通过其item属性可以获得加载的对象。
+
+```c
+Loader{id:load}
+// 
+需要加载时：修改load.source="xxx.qml"就可以加载xxx组件。将source设置为空字符串，就可以释放并销毁组件。
+```
+
+**从加载的项目中发射的信号可以使用Connections接收**
+
+```c
+main.qml
+---------------------------------------
+import QtQuick 1.0
+ 
+Item {
+    property bool isFirst : false;
+    width: 200
+    height: 200
+ 
+    Loader {
+        id: pageLoader
+        source: "Page1.qml"
+    }
+ 
+ 
+    Connections {
+        target: pageLoader.item
+        onMessage: console.log(msg);
+    }
+ 
+}
+ 
+Page1.qml
+----------------------------------------------
+import QtQuick 1.0
+ 
+Rectangle {
+    id: myItem
+    signal message(string msg)
+    width: 100; height: 100
+ 
+    MouseArea {
+        anchors.fill: parent
+        onClicked: myItem.message("clicked!");
+    }
+}
+```
+
+#### QT控件和对话框
+
+放置在模块`Qt Quick Controls`和`Qt Quick Dialogs`
+
+**ApplicationWindow类似QMainWindow，具有菜单栏、工具栏、状态栏，该类型包含一个`contentItem`属性，可以进行窗口大小的设置**
+
+```c
+ApplicationWindow{
+	...
+	Action{
+		id:
+		text:qsTr("显示文字") // 
+		shortcut:"ctrl+q" // 快捷键
+         iconSource:"image/xxx.png"
+         onTriggered:Qt.quit()
+	}
+    Action{ // 支持使用"&"定义快捷键
+        // 仅仅定义Action，Action可以使用在按钮中，或者MenuItem中，仅仅需要定义action:actionid即可。
+    }
+    // 菜单栏
+    menuBar:MenuBar{ // 
+        Menu{ // 在其title属性文字中添加--&快捷键
+            // 一个菜单项
+            MenuItem{
+              // 菜单项中一个组件   
+            }
+            MenuItem{
+                
+            }
+            MenuSeparator{} // 分割线
+        }
+        Menu{}
+    }
+    header: ToolBar{
+        width:parent.width
+        Row{
+            anchors.fill:parent
+            ToolButton{
+                action:quitAction
+                ToolTip:hovered
+                ToolTip.text:
+            }
+            ToolSeparator{}
+        }
+    }
+    
+    StackView:作用，类似于一个页面很多子页面，每打开一个子页面将先前的子页面压入用于返回句柄
+}
+
+```
+
+**注意：目前Action内取消了tooltip，我们需要在要使用的按钮中定义Tooltip类来使用**
+
+##### 对话框
+
+在`Window`组件中设置`Window.flags`为`Qt.Dialog`，实际要弹出对话框通过`id.show()`
+
+`modality`模态属性，枚举值，包含在`Qt.`中
+
+* `NonModal`非模态
+* `WindowModal`窗口模特
+* `ApplicationModal`应用程序模态
+
+```c
+// 有的情况下单击❌并不真的希望关闭，而是希望在后台运行
+我们可以在ApplicationWindow对象的onClosing:{
+    // 处理信号设置false就可实现
+    close.accepted = false; 
+}
+```
+
+##### 按钮类
+
+* `Button`
+* `CheckBox`
+* `RadioButton`
+* `Switch`
+* `ToolButton`
+* `DelayButton`
+* `RoundButton`
+* `TabButton`
+
+##### 数据选择类
+
+* `comboBox`：`model`属性中定义选择的数据模型。还可以使用`model:ListModel{}`其中定义
+* `spinBox`
+
+##### 文本类：
+
+* `TextField`
+* `TextArea`
+* `label`
+
+##### 导航类
+
+* `ScrollView`
+* `SplitView`对应`QSplitter`，在其中定义的各组件会被垂直或水平的分割。
+* `StackView`
+
+##### 等待
+
+* `BusyIndicator`
+
+#### 颜色
+
+* `Qt`全局对象中定义了一系列有关取颜色的函数
+
+---
+
+**渐变：**
+
+```c
+gradient:Gradient{
+	GradientStop
+}
+```
+
+#### 图片
+
+使用`Image`
+
+```c
+Image{
+
+	source:"..."
+}
+```
+
+* `width`、`height`和`sourceSize.width`、`sourceSize.height`的区别，**前者仅在绘制时放缩，内存中保存的还是原始大小，后者直接设置内存中大小，可以节省资源**
+
+---
+
+* `BorderImage`：利用图片创建边框。将图片分成九宫格，从上到下从左到右数字为1~9.
+
+  ```
+  当图片进行缩放时，源图片的各个区域使用下面的方式进行缩放或者平铺来创建要显示的边界图片：
+  ●4个角(1、3、7、9区域)不进行缩放：
+  ●区域2和8通过horizontalTileMode属性设置的模式进行缩放；
+  ●区域4和6通过verticalTileMode属性设置的模式进行缩放；
+  ●区域5结合horizontalTileMode和verticalTileMode属性设置的模式进行缩放。
+  ```
+
+  ---
+
+* `AnimatedImage`：动态图片，可以用来播放一系列帧的图片动图，如`gif`文件
+
+#### 缩放、旋转和平移变换
+
+* 使用属性实现简单变换：
+
+  * `scale`缩放，大于1放大，小于1缩小。负值为镜像效果
+  * `rotation`旋转，
+
+* 使用Transform实现高级变换。其包含三个具体的实现类
+
+  * `Rotation`可以支持三维旋转
+  * `Scale`可以支持单个方向缩放
+  * `Translate`平移
+
+  如：`transform:Rotation{}`
+
+#### 状态
+
+##### 状态改变时动画和过渡
+
+类型：
+
+* `PauseAnimation`：动画执行时暂停
+* `ScriptAction`：动画过程中执行js脚本
+* `PropertyAction`：动画中立刻修改一个属性的值，属性改变时不使用动画
+* `SmoothedAnimation`平滑的过渡效果
+* `SpringAnimation`：类似弹簧的动画
+* `ParentAnimation`：在父项目改变时产生动画效果
+* `PropertyAnimation`：属性改变时触发
+* `AnchorAnimation`：在锚改变时产生动画
+
+**动画的触发：**
+
+1. 使用属性动画：针对属性值应用
+
+   ```
+   直接定义动画对象，通过内部的target和property:"属性名"搭配设置针对目标
+   ```
+
+   
+
+2. 使用预定义的目标和属性：在某个属性上：`<Animation类型> on <属性>{定义动画属性}`
+
+3. 作为一个`transition`对象
+
+4. 作为一个信号触发器的对象：`onClicked:动画类型{}`
+
+5. 使用默认的行为(Behavior)动画
+
+   ```
+   Behavior on 属性{
+   动画{
+   }
+   }
+   ```
+
+   ---
+
+###### **组动画：并行或顺序播放**
+
+```
+SequentialAnimation:顺序
+ParallelAnimation:并行
+SequentialAnimation{
+	id:
+	running:false
+	动画类型{
+	
+	}
+	动画类型{
+	
+	}
+	...
+}
+```
+
+###### 动画控制
+
+* `start`开始
+* `stop`停止，属性值只获得停止时的值
+* `resume`恢复
+* `pause`暂停
+* `restart`重新开始
+* `complete`完毕，属性获得结束的值
+
+###### 缓和曲线
+
+用来定义动画如何在开始值和结束值之间进行插值。
+
+###### SpriteAnimation
+
+```c
+SpriteSequence{
+    id:image;width:256;height:256
+    anchors.horizontalCenter:parent.horizontalCenter
+    interpolate:false;goalSprite:"
+    Sprite(
+    name:"still";source:"BearSheet.png"
+    frameCount:1;framewidth:256;frameHeight:256
+    frameDuration:100
+    to:("still":1,"blink":0.1,"floating":0)
+    Sprite(
+    name:"blink":source:"BearSheet.png"
+    frameCount:3:framex:256:frameY:1536
+    frameWidth:256;frameHeight:256
+    frameDuration:100
+    to:{"sti11":1)
+    }
+    Sprite(
+    name:"floating";source:"BearSheet.png"
+    frameCount:9;framex:0;frameY:0
+    frameWidth:256;frameHeight:256
+    frameDuration:160
+    to:("still":0,"flailing":1)
+    Sprite(
+    name:"flailing":source:"BearSheet.png"
+    frameCount:8;framex:0;frameY:768
+    frameWidth:256;frameHeight:256
+    frameDuration:160
+    to:("falling":1)
+    Sprite(
+    name:"falling":source:"BearSheet.png"
+    frameCount:5;frameY:1280
+    framewidth:256;frameHeight:256
+    frameDuration:160
+    to:("falling":1)}
+}
+```
+
+
+
+```c
+精灵引擎中的精灵动画可以使用Sprite类型定义。它是一个纯数据类型，不会进行谊染。该类型可以使用source属性为动画指定图片。如果使用frame Width和frameHeight属性指定了每个帧的大小，那么图片可以分为多个连续的行或者矩形顿：当一行的帧使用完了，会自动使用下一行的帧。如果使用frameX和frameY指定开始帧的位置，那么会从图片的(x,y)坐标的位置开始获取帧。使用name属性可以设置精灵的名称。使用0属性可以设置要过渡到的精灵的名称和权重，该属性的值是QVariantMap类型的键值对。例如{"a":l,"b":2,"c":0},这样会指定当前动画结束后，有1/3的几率过渡到名称为“a”的Sprite动画，有2/3的几率过渡到名称为“b”的Sprite动画，不会过渡到“c”动画。但是如果将目标动画设置为“c”,也可以过渡到“c”
+Sprite动画。可以使用frameRate或者frameDuration属性来设置动画的速度，前者通过设置每秒显示的顿数来指定速度，后者通过设置每帧的显示时长来指定速度。如果将frameSync属性设置为true,那么动画顿将没有持续时间，当一个帧渲染到屏幕后会马上渲染下一帧。要反向执行动画，可以将reverse属性设置为true。SpriteSequence类型可以使用精灵引擎绘制定义在它里面的Sprite类型。该类型是一个独立的自给式精灵引擎，因而不能与其他精灵引擎进行交互。可以通过设置sprites属性指定要绘制的Sprite类型。各帧会被缩放为该引擎的大小。sprites属性是默认属性，所以直接在SpriteSequence中定义Sprite。goalSprite属性可以指定目标Sprite类型。指定该属性后，会无视过渡权重，以最短的路径到达目标动画。该类型还有一个jumpTo()函数，可以立即跳转到指定的动画。
+```
+
+`AnimatedSprite`：不在动画之间进行过渡
+
+###### Flickable和Flipable
+
+弹动效果：`Flickable`。可以用很小的视图显示很大的图片，通过视图的滚动显示更多内容
+
+**翻转效果：`Flipable`**可以明显在其正面和反面之间进行反转的项目
+
+#### 图形效果
+
+导入：`import QtGraphicalEffects 版本`。包含20多种特效
+
+##### Blend混合效果
+
+混合两个对象
+
+##### 颜色效果
+
+###### BrightnessContrast
+
+亮度对比度
+
+###### ColorOverlay
+
+颜色叠加
+
+###### Colorize
+
+着色
+
+###### Desaturate
+
+饱和度
+
+###### GammaAdjust
+
+伽马调整
+
+###### LevelAdjust
+
+色阶调整
+
+###### HueSaturation
+
+色相饱和度
+
+##### 渐变
+
+###### ConicalGradient
+
+锥形渐变。从对象中间，在边缘结束渐变
+
+###### LinearGradient
+
+线性渐变，从起始点到终止点
+
+###### RadialGradient
+
+辐射渐变，与锥形渐变类似
+
+##### Distortion变形效果
+
+提供了一种可以移动像素的位移效果。
+
+##### 阴影效果
+
+###### DropShadow
+
+投影。
+
+###### InnerShadow
+
+内阴影。
+
+##### 模糊效果
+
+###### FastBlur
+
+快速模糊
+
+###### GaussionBlur
+
+高斯模糊
+
+###### RecursiveBlur
+
+递归模糊
+
+###### MaskedBlue
+
+遮罩模糊
+
+##### 动态模糊
+
+###### DirectionalBlur
+
+方向模糊
+
+###### RadialBlur
+
+径向模糊
+
+###### ZoomBlur
+
+缩放模糊
+
+##### 发光效果
+
+###### Glow
+
+发光
+
+###### RectangularGlow
+
+矩形发光
+
+##### 遮罩效果
+
+###### OpacityMask
+
+不透明遮罩
+
+###### ThresholdMash
+
+阙值遮罩
+
+#### 粒子系统
+
+是三维计算机图形学中模拟一些特定的模糊现象的技术。如火、爆炸、烟、云、雾、雪、流星尾迹等等。
+
+##### ParticleSystem
+
+##### Emitter
+
+发射器
+
+##### ParticlePainters
+
+渲染器，使粒子可视化
+
+##### TrailEmitter
+
+##### 粒子组：ParticleGroup
+
+##### 随机参数
+
+粒子系统通过几个辅助类型来实现随机参数
+
+* `Direction`用于方向控制
+  * `AngleDirection`角度
+  * `CumulativeDirection`和向量
+  * `PointDirection`
+  * `TargetDirection`指定目标点作为方向
+* `Shape`从一个形状中选取一个随机的点，矩形
+  * `EllipseShape`椭圆
+  * `LineShape`线
+  * `MaskShape3`
+
+##### 影响器Affector
+
+可以在模拟时改变粒子的运行轨迹，提前结束粒子生命
+
+包含几个子类型：
+
+1. `Age`
+2. `Attractor`将粒子吸收到一个指定的点
+3. `Friction`为对象增加一个阻力
+4. `Gravity`给其一个加速度
+5. `GroupGoal`让一个组中粒子过渡到另一个组
+6. `SpriteGoal`
+7. `Turbulence`一般用于产生一个不稳定的形状
+8. `Wander`改变粒子轨迹
+
+#### Canvas
+
+一个可绘图的画布。
+
+**渲染的目标**：
+
+* `Canvas.Image`：默认值。支持后台渲染
+* `Canvas.FramebufferObject`：渲染目标使用OpenGL硬件加速，而不是直接渲染到系统内存
+
+**渲染的策略：**通过`renderStrategy`属性设置
+
+* `Canvas.Immediate`立即执行图形命令
+* `Canvas.Threaded`延迟到另一个线程
+* `Canvas.Cooperative`将图形命令延迟到应用程序的全局渲染进程
+
+**平铺Canvas**
+
+---
+
+**绘制操作：**一般格式
+
+```c
+Canvas{
+    width:200;
+   	height:
+    onPaint:{
+        var ctx = getContext("2d"); // 创建Context2D对象，提供一个笛卡尔坐标系统，0,0坐标在左上，x轴向右
+        // todo:设置路径
+        ...
+        // todo:描边或填充
+        ...
+    }
+}
+```
+
+两种绘制方式：
+
+* 描边：相关属性
+  * `strokeStyle`：描边样式。可以是一个合法的CSS颜色，也可以是一个CanvasGradient或CanvasPattern对象
+* 填充：相关的属性
+  * `fillStyle`保存当前填充样式，可以是一个合法的CSS颜色，也可以是一个CanvasGradient或CanvasPattern对象
+* 通用属性：
+  * `lineWidth`
+  * `lineJoin`线的链接样式
+  * `lineCap`保存当前边线的端点样式
+  * `globalAlpha`
+
+* 函数
+  * `fillRect`绘制矩形
+  * `strokeRect`描边方式绘制矩形
+  * `clearRect`清空矩形区域
+  * `save()`将当前绘制样式的状态压入栈
+  * `restore()`栈顶的样式弹出设置
+
+​	例子：
+
+```js
+var ctx = getContext("2d")
+ctx.fillStyle = ctx.createPattern("red",DenselPattern) // 或使用照片平铺ctx.createPatten(照片类型,repeat/repeat-x/repeat-y/no-repeat)
+```
+
+---
+
+其他绘制
+
+* `fillText`|`strokeText`绘制文本，通过`ctx.font`设置文本样式
+
+---
+
+**绘制路径：**
+
+绘制前要使用`beginPath()`，然后设置具体路径，如：`ctx.rect(...)，最后调用`ctx.stroke()`真正绘制。
+
+**注意路径绘制会自动调用`closePath()`将绘制的路径尾和首进行闭合连接直线**
+
+* `moveTo(x,y)`当前坐标移动到x,y不会进行绘制
+* `lineTo(x,y)`当前坐标移动到x,y会进行绘制一条直线。
+* `arc(x,y,半径,开始结束角度,顺逆时针方向)`添加一条圆弧
+* `arcTo(x1,y1,x2,y2,...)`当前点为起点，添加一条与两条线段相切的弧线。
+* `quadraticCurveTo`二次贝塞尔曲线
+* `bezierCurveTo`贝塞尔曲线
+* `rect`
+* `ellipse`椭圆
+* `roundedRect`圆角矩形
+* `text`
+
+##### 渐变填充
+
+* `createLinearGradient`线性渐变，创建渐变后，使用`CanvasGradient.addColorStop()`添加渐变点。最后`ctx.fillStyle(渐变对象)`
+* `createRadialGradient`辐射渐变
+* `createConicalGradient`锥形渐变
+
+##### 阴影
+
+有四个属性控制
+
+* `shadowBlur`阴影的像素模糊值，即阴影宽度
+* `shadowColor`
+* `shadowOffsetX`
+* `shadowOffsetY`阴影在Y方向的偏移。
+
+##### 图像
+
+* `drawImage(image,x,y)`绘制图像
+* `drawImage(image,x,y,w,h)`在矩形区域内绘制
+* `drawImage(image,sx,sy,sw,sh,x,y,w,h)`将图像的矩形绘制到矩形
+
+##### 坐标变换
+
+* `setTransform()`仅设置当前变换矩阵
+* `transform()`将当前矩阵乘以变换矩阵
+
+##### 平移
+
+* `translate()`实现图形平移
+
+##### 缩放
+
+* `scale()`
+
+##### 旋转
+
+`rotate()`
+
+##### 扭曲
+
+`shear()`
+
+#### 模型和视图
+
+模型、视图、委托（控制数据应该如何在视图中显示）
+
+**一般要导入：`QtQml.model`**
+
+一般结构：将视图的model属性绑定到一个模型类型，然后将delegate属性绑定到一个组件**(`Component`)**或者其他兼容的类型
+
+**提供的模型**
+
+`import QtQml.Models 版本`
+
+* `DelegateModel`封装模型和委托
+
+* `DelegateModelGroup`封装经过过滤的可视数据项集合
+
+* `ListModel`定义格式自由的列表式数据项，**通过model.setProperty()可以修改某个值**。特别的，其中可以这样
+
+  ```
+  ListElement{
+  	name:"xx"
+  	attributes:{
+  		ListElement{
+  			a:"xx"
+  		}
+  		ListElement{
+  			
+  		}
+  	}
+  }
+  ...
+  可以通过
+  Repeater{
+  	model:attribute
+  	Text{
+  		text:a
+  	}
+  }
+  ```
+
+  **在委托组件作用域中可以使用一个特殊的属性表示当前索引：`index`**还有一个表示当前数据`modelData`如
+
+  ```c
+  Component{
+  	model.setProperty(index,属性名,值);
+  } // index可以直接使用
+  ```
+
+  **当其他线程修改另外线程的model后，需要使用`model.sync()`**
+
+* `ObjectModel`
+
+`import QtQuick.XmlListModel 版本`
+
+* `XmlListModel`使用XPath指定模型
+
+也可使用C++自定义模型
+
+##### WorkerScript
+
+该类型可以在新线程中进行一些操作，使用该类型时，新线程和父线程之间可以使用`sendMessage()`函数和`onMessage()`处理器传递消息,如：
+
+```c
+WorkerScript{
+	id:worker;
+	source:"dataloader.js"
+	onMessage:function(msg){
+		msg.reply
+	}
+}
+// js文件
+WorkerScript.onMessage = function(message) 
+{
+    WorkerScript.sendMessage({ 'reply': '鼠标位置：' + message.x + ',' + message.y })
+        // 若是在这里修改了模型的值，还需要调用model.sync()
+}
+```
+
+##### ObjectModel
+
+其中可以定义一系列可视化的组件，将组件显示到ListView中，不需要`delegate`
+
+##### DelegateModel
+
+它能用来访问模特索引。另外，DelegateModel和Package一起使用，可提供多种显示，还可以使用DelegateModelGroup来排序和过滤
+
+##### Package
+
+##### XmlListModel
+
+##### LocalStorage
+
+是一个读取和写入SQLite数据库的单例类型
+
+##### 使用C++定义模型再使用
+
+该方法定义的模型，在模型变化时无法通知view更新，需要重新调用context->setContextProperty
+
+**定义QStringList为模型：**
+
+可以在`main.cpp`中
+
+```c
+app下方，engine上方添加，以QStringList为例子
+只写要添加的部分 
+QStringList datalist;
+// 添加自己的数据
+接着到engine下
+QQmlContext *context = engine.rootContext();
+context->setContextProperty("stringListModel",QVariant::fromValue(datalist));
+// 接下来就可以直接使用了，名字已经定为stringListModel
+```
+
+如果是自定义类型：已经有了自己的pojo类，然后创建`model`类继承`QAbstractItemModel`，通过重新实现其中`roleNames()`方法来暴露角色名称：
+
+```
+public: // pojo类有两个变量，type和size
+	enum myPojoRoles{
+		TypeRole = Qt:UserRole+1,
+		SizeRole
+	}
+	QHash<int,QByteArray>myPojoModel::roleNames()const{
+		QHash<int,QByteArray>roles;
+		roles[TypeRole] = "type"
+		roles[SizeRole] = "size"
+		return roles;
+	}
+```
+
+##### 视图类型：
+
+* `ListView`，可以设置头部和脚部，snapMode可以设置其滚动行为
+* `GridView`
+* `WebView`可以在QML应用中渲染Web内容。需要导入`QtWebKit`模块
+* `PathView`使模型按一定的路径显示，需**要定义一个委托和一个路径**。可以使用高亮，不过需要设置`visible`属性为`PathView.onPath`，在该view中，`preferedHighlightBegin`和`preferedHighlightEnd`属性很重要，取值范围均为`0~1`，如果需要当前项始终在路径中央，可以将两个属性都设置为0.5，并且将`highlightRangeMode`设置为`PathView.Strictly`。要处理导航按键，需要先设置`focus`为`true`，然后调用`decrementCurrentIndex()`或另一个函数。可以被添加到`pathElements`的路径元素：
+  * `PathLine`
+  * `PathQuad`二次贝塞尔曲线
+  * `PathCubic`二次贝塞尔曲线
+  * `PathArc`一段弧
+  * `PathSvg`由Svg路径数据字符串定义的一段路
+  * `PathCurve`Catmull-Rom曲线上一点
+  * `PathAttribute`路径上给定位置的特性，用于调整已有的路径
+  * `PathPercent`：定义在路径上项目的分布方式用于调整已有的路径
+* `Path`配合`PathView`使用，定义路径
+
+> 若想为模型中单个对象定义不同的动画，需要使用`ViewTransition`包含了许多附加属性
+
+##### View类型性能问题
+
+推荐使用`Loader`
+
+
+
+#### 多媒体
+
+|      功能      | 示例 |              类型               |
+| :------------: | :--: | :-----------------------------: |
+|    播放音频    |      |       Audio、MediaPlayer        |
+|    播放视频    |      | MediaPlayer、VideoOutput、Video |
+|    处理视频    |      |    MedioPlayer、VideoOutput     |
+|   播放收音机   |      |        Radio、RadioData         |
+| 访问相机取景器 |      |       Camera、VideoOutput       |
+|   处理取景器   |      |       Camera、VideoOutput       |
+|    拍摄照片    |      |             Camera              |
+|    拍摄视频    |      |             Camera              |
+|     3D声源     |      |          Audio Engine           |
+
+#### QT和C++
+
+##### 父对象
+
+一般自定义的类型构造函数参数中要添加：
+
+```
+myPojo(QObject *parent = 0)
+```
+
+
+
+##### QQmlEngine
+
+该C++类提供了一个QML引擎，用于管理QML文档定义的对象层次结构，提供了根上下文
+
+获得该上下文：
+
+```c
+QStringListModel modelData;
+QQmlContext *context = engine.rootContext();
+context->setContextProperty("stringModel",&modelData);
+```
+
+##### QQmlComponent
+
+使用该类可以在运行时创建组件。
+
+```c
+QQmlComponent component(&engine,QUrl::fromLocalFile("./自定义组件.qml"))
+QObject *myObject = component.create();
+QQuickItem *item = qobject_cast<QQuickItem *>(myObject) // 由此就创建了一个该组件。
+```
+
+##### QQmlExpression
+
+动态执行表达式。
+
+```c
+QQmlComponent component(&engine,QUrl::fromLocalFile("./自定义组件.qml"))
+QObject *myObject = component.create();
+QQmlExpression *expr = new QQmlExpression(engine.rootContext(),myObject,"width*2")
+int resule = expr->evaluate().toInt();
+// 该表达式求组件的宽*2的值
+```
+
+##### QML使用C++
+
+###### 通过宏添加属性和枚举
+
+当有一个变量时，一定要有一个`NOTIFY`信号`xxxChange()`信号，qml会自动创建对应的`onXXXChange()`处理
+
+---
+
+###### 使用函数和槽
+
+
+
+QML可以有条件的访问QObject子类的函数。**如果C++函数的参数是`QObject*`类型，可以在qml直接使用`id`或者`js`的`var`类型引用**
+
+条件是：
+
+1. 使用`Q_INVOKABLE`宏标记的`public`函数
+2. `public`槽函数
+
+```
+public:
+Q_INVOKABLE bool postMessage(const &QString &msg);
+
+
+```
+
+
+
+---
+
+
+
+**C++自定义组件通过`qmlRegisterType<Test>("在qml import后要写的内容",主版本号, 次版本号, "qml使用时的名字");`导入**
+
+```c
+#ifndef XIMAGEVIEW_H
+#define XIMAGEVIEW_H
+
+#include <QObject>
+#include <QImage>
+#include <QQuickPaintedItem>
+
+class QPainter;
+class XImageView : public QQuickPaintedItem
+{
+    Q_OBJECT
+	Q_EMNUS(枚举类型名) // 为了使用枚举必须暴露
+    Q_PROPERTY(QImage mImage READ getImage WRITE setImage)
+    Q_PROPERTY(QString fileUrl READ getFileUrl WRITE setFileUrl)
+    Q_PROPERTY(int mWidth READ getWidth WRITE setWidth)
+    Q_PROPERTY(int mHeight READ getHeight WRITE setHeight)
+
+public:
+    XImageView(QQuickItem *parent = 0);
+    virtual ~XImageView();
+
+    virtual void paint(QPainter *painter);
+
+    QImage getImage() const;
+    void setImage(QImage img);
+
+    QString getFileUrl() const;
+    void setFileUrl(QString url);
+
+    int getWidth() const;
+    void setWidth(int w);
+
+    int getHeight() const;
+    void setHeight(int h);
+
+    Q_INVOKABLE void zoomDraw(float z = 1.0f);
+
+private:
+   QImage mImage;
+   QString fileUrl;
+   int mWidth;
+   int mHeight;
+   float mZoom;
+};
+
+#endif // XIMAGEVIEW_H
+
+```
+
+**为了在QML访问QObject子类的列表属性，不能使用QList<T>，要使用QQmlListProperty<T>，如：`QQmlListProperty<myPojo>**
+
+###### 注册不可实例化：
+
+```
+为了应对这些情况，QML提供了一些用于注册不可实例化对象类型的方法：
+1. 使用无参数的qmlRegister Type()函数。由于qmlRegisterType()没有提供命名空间和版本号，也就不能在QML中引用，这限制了QML引擎对该类型实例化的能力。
+2. 使用qmlRegisterInterface()注册指定QML类型名称的Qt接口类型。这种类型不能实例化，但是可以使用其类型名称进行引用。
+3. 使用qmlRegisterUncreatableType()注册不可被实例化的具有名称的C+十类型，但是这样的类型依然可以作为QML类型系统可识别的一种类型。如果该类型的枚举或者附加特性需要在QML中使用，但是类型本身不应被实例化，就需要使用这种方式进行注册。
+4. 使用qmlRegisterSingleton Type()注册不能从QML导人的单例类型，下一节将详细介绍这种方法。
+```
+
+##### 类型的修订和版本
+
+使用`Q_REVISION(修订版本号)`标记新增的部分
+
+```
+Q_PROPERTY(int root READ root WRITE setRoot NOTIFY rootChanged REVISION 1)
+signals:
+	Q_REVISION(1) void rootChanged()
+然后注册修订后的类型：
+qmlRegisterType<MyType,1>("mytype",1,1,"mytype"); 现在root只能在1.1版本使用
+```
+
+##### C++实现附加属性对象
+
+**首先需要一个附加对象的类型：**同样继承qObject
+
+**对需要添加附加对象的类型必须添加：**
+
+* 在类结尾后
+
+  ```
+  myPojo:public QObject{
+  
+  };
+  QML_DECLARE_TYPEINFO(myPojo,QML_HAS_ATTACHED_PROPERTIES)
+  ```
+
+* 在类型中必须添加：
+
+  ```c
+  static 自己的附加类型 * qmlAttachedProperties(QObject *object){
+      return new 自己的附加类型(object);
+  }
+  ```
+
+  
+
+**C++可以通过`qmlAttachedPropertiesObject()`函数访问任意附加对象实例**
+
+##### 属性修饰符
+
+包含两种类型：
+
+* 属性值设置拦截器
+* 属性值源
+
+如：
+
+```c
+NumberAnimation on x{} // 自定义属性值源
+
+```
+
+**方法：**
+
+```
+1. 需要继承`QQmlPropertyValueSource`
+2. Q_INTERFACE(QQmlPropertyValueSource)
+3. 定义一个策略。以定时更新举例：
+	需要一个QTimer定时器，需要一个QQmlProperty p变量
+	在构造函数初始化时，将QTimer定时器和一个处理槽函数链接，
+```
+
+##### 默认赋值属性
+
+```c
+// 使用Q_CLASSINFO("DefaultProperty","自己定义的变量名")
+Q_CLASSINFO("DefaultProperty","messages")
+private:
+QList<Message*>messages;
+// 没有为子对象指定赋值的属性时，默认赋值给messages
+MessageBoard{
+    Message{}
+    Message{}
+}
+```
+
+##### 接受对象初始化通知
+
+有些QML对象需要在对象创建完成之后进行数据的延迟初始化
+
+**必须同时继承`QObject`和`QQmlParserStatus`，并且定义`Q_INTERFACES(QQmlParserStatus)`**
+
+##### C++加载QML
+
+* 使用`QQmlComponent`加载
+
+  `Qobject *object=component.create();delete object`
+
+* 使用`QQuickView`加载
+
+  `view.setSource(QUrl(QStringLiteral("url")))`
+
+  `view.show()`
+
+  `QQuickItem* obj = view.rootObject()`获取根对象
+
+  `obj.findChild<QObject*>("objectName属性名")`获取子对象
+
+**qml属性property也可以访问：**
+
+`QObject *obj = component.create()`
+
+`QQmlProperty::read(obj,"属性名")`
+
+属性值设置时应当使用：`obj.setProperty("属性名",value)`
+
+**QML中function在C++调用：**
+
+`obj = component.create()`
+
+`QMetaObject::invokeMethod(obj,"函数名",Q_RETURN_ARG(QVariant，接收到哪个变量),Q_ARG(QVariant,传参变量))`
+
+**C++中关联和QML信号**
+
+`QQuickItem *item = view.rootObject()`
+
+`Object obj`
+
+`QObject::connect(item,SIGNAL(qml中发射的信号名(参数类型)),&obj,SLOT(c++中定义的槽函数))`
+
+> 注意，在C++中定义的槽函数参数中变量类型必须为：`QVariant`，在QML定义的信号的参数类型必须为`var`
+
+#### 网络
+
+* `xmlListModel`
+* `XmlHttpRequest`组件
+* `WebSocket`与服务器进行HTTP请求
