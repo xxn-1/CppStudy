@@ -769,6 +769,10 @@ ApplicationWindow{
 * `SplitView`对应`QSplitter`，在其中定义的各组件会被垂直或水平的分割。
 * `StackView`
 
+##### 等待
+
+* `BusyIndicator`
+
 #### 颜色
 
 * `Qt`全局对象中定义了一系列有关取颜色的函数
@@ -1288,7 +1292,7 @@ ctx.fillStyle = ctx.createPattern("red",DenselPattern) // 或使用照片平铺c
   }
   ```
 
-  **在委托组件作用域中可以使用一个特殊的属性表示当前索引：`index`**如
+  **在委托组件作用域中可以使用一个特殊的属性表示当前索引：`index`**还有一个表示当前数据`modelData`如
 
   ```c
   Component{
@@ -1361,3 +1365,327 @@ context->setContextProperty("stringListModel",QVariant::fromValue(datalist));
 // 接下来就可以直接使用了，名字已经定为stringListModel
 ```
 
+如果是自定义类型：已经有了自己的pojo类，然后创建`model`类继承`QAbstractItemModel`，通过重新实现其中`roleNames()`方法来暴露角色名称：
+
+```
+public: // pojo类有两个变量，type和size
+	enum myPojoRoles{
+		TypeRole = Qt:UserRole+1,
+		SizeRole
+	}
+	QHash<int,QByteArray>myPojoModel::roleNames()const{
+		QHash<int,QByteArray>roles;
+		roles[TypeRole] = "type"
+		roles[SizeRole] = "size"
+		return roles;
+	}
+```
+
+##### 视图类型：
+
+* `ListView`，可以设置头部和脚部，snapMode可以设置其滚动行为
+* `GridView`
+* `WebView`可以在QML应用中渲染Web内容。需要导入`QtWebKit`模块
+* `PathView`使模型按一定的路径显示，需**要定义一个委托和一个路径**。可以使用高亮，不过需要设置`visible`属性为`PathView.onPath`，在该view中，`preferedHighlightBegin`和`preferedHighlightEnd`属性很重要，取值范围均为`0~1`，如果需要当前项始终在路径中央，可以将两个属性都设置为0.5，并且将`highlightRangeMode`设置为`PathView.Strictly`。要处理导航按键，需要先设置`focus`为`true`，然后调用`decrementCurrentIndex()`或另一个函数。可以被添加到`pathElements`的路径元素：
+  * `PathLine`
+  * `PathQuad`二次贝塞尔曲线
+  * `PathCubic`二次贝塞尔曲线
+  * `PathArc`一段弧
+  * `PathSvg`由Svg路径数据字符串定义的一段路
+  * `PathCurve`Catmull-Rom曲线上一点
+  * `PathAttribute`路径上给定位置的特性，用于调整已有的路径
+  * `PathPercent`：定义在路径上项目的分布方式用于调整已有的路径
+* `Path`配合`PathView`使用，定义路径
+
+> 若想为模型中单个对象定义不同的动画，需要使用`ViewTransition`包含了许多附加属性
+
+##### View类型性能问题
+
+推荐使用`Loader`
+
+
+
+#### 多媒体
+
+|      功能      | 示例 |              类型               |
+| :------------: | :--: | :-----------------------------: |
+|    播放音频    |      |       Audio、MediaPlayer        |
+|    播放视频    |      | MediaPlayer、VideoOutput、Video |
+|    处理视频    |      |    MedioPlayer、VideoOutput     |
+|   播放收音机   |      |        Radio、RadioData         |
+| 访问相机取景器 |      |       Camera、VideoOutput       |
+|   处理取景器   |      |       Camera、VideoOutput       |
+|    拍摄照片    |      |             Camera              |
+|    拍摄视频    |      |             Camera              |
+|     3D声源     |      |          Audio Engine           |
+
+#### QT和C++
+
+##### 父对象
+
+一般自定义的类型构造函数参数中要添加：
+
+```
+myPojo(QObject *parent = 0)
+```
+
+
+
+##### QQmlEngine
+
+该C++类提供了一个QML引擎，用于管理QML文档定义的对象层次结构，提供了根上下文
+
+获得该上下文：
+
+```c
+QStringListModel modelData;
+QQmlContext *context = engine.rootContext();
+context->setContextProperty("stringModel",&modelData);
+```
+
+##### QQmlComponent
+
+使用该类可以在运行时创建组件。
+
+```c
+QQmlComponent component(&engine,QUrl::fromLocalFile("./自定义组件.qml"))
+QObject *myObject = component.create();
+QQuickItem *item = qobject_cast<QQuickItem *>(myObject) // 由此就创建了一个该组件。
+```
+
+##### QQmlExpression
+
+动态执行表达式。
+
+```c
+QQmlComponent component(&engine,QUrl::fromLocalFile("./自定义组件.qml"))
+QObject *myObject = component.create();
+QQmlExpression *expr = new QQmlExpression(engine.rootContext(),myObject,"width*2")
+int resule = expr->evaluate().toInt();
+// 该表达式求组件的宽*2的值
+```
+
+##### QML使用C++
+
+###### 通过宏添加属性和枚举
+
+当有一个变量时，一定要有一个`NOTIFY`信号`xxxChange()`信号，qml会自动创建对应的`onXXXChange()`处理
+
+---
+
+###### 使用函数和槽
+
+
+
+QML可以有条件的访问QObject子类的函数。**如果C++函数的参数是`QObject*`类型，可以在qml直接使用`id`或者`js`的`var`类型引用**
+
+条件是：
+
+1. 使用`Q_INVOKABLE`宏标记的`public`函数
+2. `public`槽函数
+
+```
+public:
+Q_INVOKABLE bool postMessage(const &QString &msg);
+
+
+```
+
+
+
+---
+
+
+
+**C++自定义组件通过`qmlRegisterType<Test>("在qml import后要写的内容",主版本号, 次版本号, "qml使用时的名字");`导入**
+
+```c
+#ifndef XIMAGEVIEW_H
+#define XIMAGEVIEW_H
+
+#include <QObject>
+#include <QImage>
+#include <QQuickPaintedItem>
+
+class QPainter;
+class XImageView : public QQuickPaintedItem
+{
+    Q_OBJECT
+	Q_EMNUS(枚举类型名) // 为了使用枚举必须暴露
+    Q_PROPERTY(QImage mImage READ getImage WRITE setImage)
+    Q_PROPERTY(QString fileUrl READ getFileUrl WRITE setFileUrl)
+    Q_PROPERTY(int mWidth READ getWidth WRITE setWidth)
+    Q_PROPERTY(int mHeight READ getHeight WRITE setHeight)
+
+public:
+    XImageView(QQuickItem *parent = 0);
+    virtual ~XImageView();
+
+    virtual void paint(QPainter *painter);
+
+    QImage getImage() const;
+    void setImage(QImage img);
+
+    QString getFileUrl() const;
+    void setFileUrl(QString url);
+
+    int getWidth() const;
+    void setWidth(int w);
+
+    int getHeight() const;
+    void setHeight(int h);
+
+    Q_INVOKABLE void zoomDraw(float z = 1.0f);
+
+private:
+   QImage mImage;
+   QString fileUrl;
+   int mWidth;
+   int mHeight;
+   float mZoom;
+};
+
+#endif // XIMAGEVIEW_H
+
+```
+
+**为了在QML访问QObject子类的列表属性，不能使用QList<T>，要使用QQmlListProperty<T>，如：`QQmlListProperty<myPojo>**
+
+###### 注册不可实例化：
+
+```
+为了应对这些情况，QML提供了一些用于注册不可实例化对象类型的方法：
+1. 使用无参数的qmlRegister Type()函数。由于qmlRegisterType()没有提供命名空间和版本号，也就不能在QML中引用，这限制了QML引擎对该类型实例化的能力。
+2. 使用qmlRegisterInterface()注册指定QML类型名称的Qt接口类型。这种类型不能实例化，但是可以使用其类型名称进行引用。
+3. 使用qmlRegisterUncreatableType()注册不可被实例化的具有名称的C+十类型，但是这样的类型依然可以作为QML类型系统可识别的一种类型。如果该类型的枚举或者附加特性需要在QML中使用，但是类型本身不应被实例化，就需要使用这种方式进行注册。
+4. 使用qmlRegisterSingleton Type()注册不能从QML导人的单例类型，下一节将详细介绍这种方法。
+```
+
+##### 类型的修订和版本
+
+使用`Q_REVISION(修订版本号)`标记新增的部分
+
+```
+Q_PROPERTY(int root READ root WRITE setRoot NOTIFY rootChanged REVISION 1)
+signals:
+	Q_REVISION(1) void rootChanged()
+然后注册修订后的类型：
+qmlRegisterType<MyType,1>("mytype",1,1,"mytype"); 现在root只能在1.1版本使用
+```
+
+##### C++实现附加属性对象
+
+**首先需要一个附加对象的类型：**同样继承qObject
+
+**对需要添加附加对象的类型必须添加：**
+
+* 在类结尾后
+
+  ```
+  myPojo:public QObject{
+  
+  };
+  QML_DECLARE_TYPEINFO(myPojo,QML_HAS_ATTACHED_PROPERTIES)
+  ```
+
+* 在类型中必须添加：
+
+  ```c
+  static 自己的附加类型 * qmlAttachedProperties(QObject *object){
+      return new 自己的附加类型(object);
+  }
+  ```
+
+  
+
+**C++可以通过`qmlAttachedPropertiesObject()`函数访问任意附加对象实例**
+
+##### 属性修饰符
+
+包含两种类型：
+
+* 属性值设置拦截器
+* 属性值源
+
+如：
+
+```c
+NumberAnimation on x{} // 自定义属性值源
+
+```
+
+**方法：**
+
+```
+1. 需要继承`QQmlPropertyValueSource`
+2. Q_INTERFACE(QQmlPropertyValueSource)
+3. 定义一个策略。以定时更新举例：
+	需要一个QTimer定时器，需要一个QQmlProperty p变量
+	在构造函数初始化时，将QTimer定时器和一个处理槽函数链接，
+```
+
+##### 默认赋值属性
+
+```c
+// 使用Q_CLASSINFO("DefaultProperty","自己定义的变量名")
+Q_CLASSINFO("DefaultProperty","messages")
+private:
+QList<Message*>messages;
+// 没有为子对象指定赋值的属性时，默认赋值给messages
+MessageBoard{
+    Message{}
+    Message{}
+}
+```
+
+##### 接受对象初始化通知
+
+有些QML对象需要在对象创建完成之后进行数据的延迟初始化
+
+**必须同时继承`QObject`和`QQmlParserStatus`，并且定义`Q_INTERFACES(QQmlParserStatus)`**
+
+##### C++加载QML
+
+* 使用`QQmlComponent`加载
+
+  `Qobject *object=component.create();delete object`
+
+* 使用`QQuickView`加载
+
+  `view.setSource(QUrl(QStringLiteral("url")))`
+
+  `view.show()`
+
+  `QQuickItem* obj = view.rootObject()`获取根对象
+
+  `obj.findChild<QObject*>("objectName属性名")`获取子对象
+
+**qml属性property也可以访问：**
+
+`QObject *obj = component.create()`
+
+`QQmlProperty::read(obj,"属性名")`
+
+属性值设置时应当使用：`obj.setProperty("属性名",value)`
+
+**QML中function在C++调用：**
+
+`obj = component.create()`
+
+`QMetaObject::invokeMethod(obj,"函数名",Q_RETURN_ARG(QVariant，接收到哪个变量),Q_ARG(QVariant,传参变量))`
+
+**C++中关联和QML信号**
+
+`QQuickItem *item = view.rootObject()`
+
+`Object obj`
+
+`QObject::connect(item,SIGNAL(qml中发射的信号名(参数类型)),&obj,SLOT(c++中定义的槽函数))`
+
+> 注意，在C++中定义的槽函数参数中变量类型必须为：`QVariant`，在QML定义的信号的参数类型必须为`var`
+
+#### 网络
+
+* `xmlListModel`
+* `XmlHttpRequest`组件
+* `WebSocket`与服务器进行HTTP请求
