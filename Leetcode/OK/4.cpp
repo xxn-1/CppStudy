@@ -23,7 +23,7 @@ void mergeDemo(int begin, int end, vector<int> &nums, vector<int> &res)
 {
     if (begin >= end)
         return;
-
+    
     int len = end - begin, mid = len / 2 + begin;
 
     int start1 = begin, end1 = mid;
