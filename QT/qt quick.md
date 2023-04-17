@@ -205,6 +205,21 @@ QtQuick提供的基本类型
 
 可以在qml中直接进行JS操作，**两者可以混合进行，或直接调用JS的函数**。
 
+###### 读写文件
+
+```js
+            /* 如需要读取某个路径文件则可以这样写：file:///C:/Users/My/Demo.qml */
+---
+function readFile(url){
+	var request = new XMLHttpRequest();
+	request.open("GET",url,false);
+	request.send(null);
+	return request.responseText;
+}
+```
+
+
+
 ###### 属性绑定
 
 `height:parent.height`当父对象height改变，子对象height自动改变
@@ -1348,7 +1363,7 @@ WorkerScript.onMessage = function(message)
 
 ##### 使用C++定义模型再使用
 
-该方法定义的模型，在模型变化时无法通知view更新，需要重新调用context->setContextProperty
+该方法定义的模型，在模型变化时无法通知view更新，需要重新调用context->setContextProperty。[(54条消息) 在QML中使用SQL Model_qml sqlquerymodel_喵喵叫的猴的博客-CSDN博客](https://blog.csdn.net/zjgo007/article/details/112673115)绑定自动更新
 
 **定义QStringList为模型：**
 
