@@ -486,6 +486,10 @@ move:Transition{
 * `model`:重复次数
 
   在model下面定义对象，会重复model次
+  
+  ----
+  
+  循环时有一个`modelData`可以调用当前model索引的值。
 
 ##### 基于锚的布局
 
@@ -766,6 +770,51 @@ ApplicationWindow{
 * `DelayButton`
 * `RoundButton`
 * `TabButton`
+
+```c
+// 渐变
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtGraphicalEffects 1.15  // 导入QtGraphicalEffects才能正常使用LinearGradient
+
+Button {
+    id: btn
+    width: 160
+    height: 44
+    property color lightColor: "#FF66B8FF"  // 起始颜色
+    property color darkColor: "#FF338BFF"   // 终止颜色
+    contentItem: Label {
+        font.pixelSize: 14
+        font.weight: Font.Black
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        color: "#FFFFFF"
+        text: "横向渐变色按钮"
+    }
+    background: Rectangle {
+        anchors.fill: parent
+        radius: 8
+        layer.enabled: true
+        layer.effect: LinearGradient {
+            start: Qt.point(0, 0)
+            end: Qt.point(width, 0)
+            gradient: Gradient {
+                GradientStop {
+                    position: 0.0
+                    color: btn.pressed ? btn.darkColor : btn.lightColor
+                }
+                GradientStop {
+                    position: 1.0
+                    color: btn.pressed || !btn.hovered ? btn.darkColor : btn.lightColor
+                }
+            }
+        }
+    }
+}
+
+```
+
+
 
 ##### 数据选择类
 
@@ -1140,6 +1189,54 @@ Sprite动画。可以使用frameRate或者frameDuration属性来设置动画的�
 8. `Wander`改变粒子轨迹
 
 #### Canvas
+
+##### Shape
+
+用来实现一些自定义的图形，只设置某条边的边框，或者某个角变圆角。
+
+```c
+import QtQuick.Shapes 1.13
+
+Shape {
+    id: shape
+    property var cornersRadius
+    property color color
+    property color borderColor:"transparent"
+    property var borderWidth
+    layer.enabled: true
+    layer.samples: 4
+    layer.smooth: true
+
+
+    ShapePath {
+        startX: 0
+        startY: cornersRadius[0]
+        fillColor: color
+        strokeColor: borderColor
+        strokeWidth: borderWidth
+        PathQuad { x: cornersRadius[0]; y: 0; controlX: 0; controlY: 0 }
+        PathLine { x: shape.width - cornersRadius[1]; y: 0 }
+        
+        PathQuad { x: shape.width; y: cornersRadius[1]; controlX: shape.width; controlY: 0 }
+        PathLine { x: shape.width; y: shape.height - cornersRadius[2] }
+        PathQuad { x: shape.width - cornersRadius[2]; y: shape.height; controlX: shape.width; controlY: shape.height }
+        PathLine { x: cornersRadius[3]; y: shape.height }
+        PathQuad { x: 0; y: shape.height - cornersRadius[3]; controlX: 0; controlY: shape.height }
+        PathLine { x: 0; y: cornersRadius[0] }
+    }
+}
+------------------------
+     CurvedRectangle{
+            width: 160
+            height: 160
+            color: "cyan"
+            cornersRadius: [20,0,20,0]
+            borderWidth:[1,2,3,1] // 上下右左
+            borderColor:"grey"
+        }
+```
+
+
 
 一个可绘图的画布。
 
@@ -1703,4 +1800,4 @@ MessageBoard{
 
 * `xmlListModel`
 * `XmlHttpRequest`组件
-* `WebSocket`与服务器进行HTTP请求
+* `WebSocket`与服务器进行HTTP请求 
