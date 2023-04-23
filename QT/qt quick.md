@@ -6,6 +6,41 @@ QT Quick是Qml的一个类库
 
 使用`qmlscene`可以测试QML应用
 
+#### 槽和信号
+
+当声明一个信号后会自动生成一个on<SignalName>这个槽函数（这种是JavaScript代码）
+
+```c
+Component.onCompleted:{
+ 
+    rectangleId.greet.connect(rectangleId.myGreeting)
+}
+// 方法2
+signal greet(string message)
+ 
+ 
+        onGreet: {
+ 
+            console.log("onGreet: greet signal emited, parameter is : " + increment)
+            increment += 50
+        }
+ 
+        MouseArea{
+ 
+            anchors.fill: parent
+            onClicked: {
+ 
+                rectangleId.greet("Hello there")
+            }
+        }
+
+————————————————
+
+
+```
+
+
+
 #### 基本语法
 
 * `import 模块名 版本号 [as Qualifier]`Qualifier表示一个文档内部的命名空间，如果不给出该限定符，那麽导入的对象类型和js资源会导入全局命名空间。如：
@@ -204,6 +239,21 @@ QtQuick提供的基本类型
 ##### JS
 
 可以在qml中直接进行JS操作，**两者可以混合进行，或直接调用JS的函数**。
+
+###### 读写文件
+
+```js
+            /* 如需要读取某个路径文件则可以这样写：file:///C:/Users/My/Demo.qml */
+---
+function readFile(url){
+	var request = new XMLHttpRequest();
+	request.open("GET",url,false);
+	request.send(null);
+	return request.responseText;
+}
+```
+
+
 
 ###### 属性绑定
 
@@ -471,6 +521,10 @@ move:Transition{
 * `model`:重复次数
 
   在model下面定义对象，会重复model次
+  
+  ----
+  
+  循环时有一个`modelData`可以调用当前model索引的值。
 
 ##### 基于锚的布局
 
@@ -752,6 +806,51 @@ ApplicationWindow{
 * `RoundButton`
 * `TabButton`
 
+```c
+// 渐变
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtGraphicalEffects 1.15  // 导入QtGraphicalEffects才能正常使用LinearGradient
+
+Button {
+    id: btn
+    width: 160
+    height: 44
+    property color lightColor: "#FF66B8FF"  // 起始颜色
+    property color darkColor: "#FF338BFF"   // 终止颜色
+    contentItem: Label {
+        font.pixelSize: 14
+        font.weight: Font.Black
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        color: "#FFFFFF"
+        text: "横向渐变色按钮"
+    }
+    background: Rectangle {
+        anchors.fill: parent
+        radius: 8
+        layer.enabled: true
+        layer.effect: LinearGradient {
+            start: Qt.point(0, 0)
+            end: Qt.point(width, 0)
+            gradient: Gradient {
+                GradientStop {
+                    position: 0.0
+                    color: btn.pressed ? btn.darkColor : btn.lightColor
+                }
+                GradientStop {
+                    position: 1.0
+                    color: btn.pressed || !btn.hovered ? btn.darkColor : btn.lightColor
+                }
+            }
+        }
+    }
+}
+
+```
+
+
+
 ##### 数据选择类
 
 * `comboBox`：`model`属性中定义选择的数据模型。还可以使用`model:ListModel{}`其中定义
@@ -787,9 +886,15 @@ gradient:Gradient{
 }
 ```
 
+#### 图表
+
+`import QtCharts`
+
+在`ChartView`组件中画图
+
 #### 图片
 
-使用`Image`
+使用`Imagebiao`
 
 ```c
 Image{
@@ -1126,6 +1231,54 @@ Sprite动画。可以使用frameRate或者frameDuration属性来设置动画的�
 
 #### Canvas
 
+##### Shape
+
+用来实现一些自定义的图形，只设置某条边的边框，或者某个角变圆角。
+
+```c
+import QtQuick.Shapes 1.13
+
+Shape {
+    id: shape
+    property var cornersRadius
+    property color color
+    property color borderColor:"transparent"
+    property var borderWidth
+    layer.enabled: true
+    layer.samples: 4
+    layer.smooth: true
+
+
+    ShapePath {
+        startX: 0
+        startY: cornersRadius[0]
+        fillColor: color
+        strokeColor: borderColor
+        strokeWidth: borderWidth
+        PathQuad { x: cornersRadius[0]; y: 0; controlX: 0; controlY: 0 }
+        PathLine { x: shape.width - cornersRadius[1]; y: 0 }
+        
+        PathQuad { x: shape.width; y: cornersRadius[1]; controlX: shape.width; controlY: 0 }
+        PathLine { x: shape.width; y: shape.height - cornersRadius[2] }
+        PathQuad { x: shape.width - cornersRadius[2]; y: shape.height; controlX: shape.width; controlY: shape.height }
+        PathLine { x: cornersRadius[3]; y: shape.height }
+        PathQuad { x: 0; y: shape.height - cornersRadius[3]; controlX: 0; controlY: shape.height }
+        PathLine { x: 0; y: cornersRadius[0] }
+    }
+}
+------------------------
+     CurvedRectangle{
+            width: 160
+            height: 160
+            color: "cyan"
+            cornersRadius: [20,0,20,0]
+            borderWidth:[1,2,3,1] // 上下右左
+            borderColor:"grey"
+        }
+```
+
+
+
 一个可绘图的画布。
 
 **渲染的目标**：
@@ -1348,7 +1501,7 @@ WorkerScript.onMessage = function(message)
 
 ##### 使用C++定义模型再使用
 
-该方法定义的模型，在模型变化时无法通知view更新，需要重新调用context->setContextProperty
+该方法定义的模型，在模型变化时无法通知view更新，需要重新调用context->setContextProperty。[(54条消息) 在QML中使用SQL Model_qml sqlquerymodel_喵喵叫的猴的博客-CSDN博客](https://blog.csdn.net/zjgo007/article/details/112673115)绑定自动更新
 
 **定义QStringList为模型：**
 
@@ -1367,7 +1520,7 @@ context->setContextProperty("stringListModel",QVariant::fromValue(datalist));
 
 如果是自定义类型：已经有了自己的pojo类，然后创建`model`类继承`QAbstractItemModel`，通过重新实现其中`roleNames()`方法来暴露角色名称：
 
-```
+```c
 public: // pojo类有两个变量，type和size
 	enum myPojoRoles{
 		TypeRole = Qt:UserRole+1,
@@ -1379,6 +1532,68 @@ public: // pojo类有两个变量，type和size
 		roles[SizeRole] = "size"
 		return roles;
 	}
+	
+	
+///////////////////////////////
+QStringList MyModel::userRoleNames() // Return ordered List of user-defined roles
+{
+    QMap<int, QString> res;
+    QHashIterator<int, QByteArray> i(roleNames());
+    while (i.hasNext()) {
+        i.next();
+        if(i.key() > Qt::UserRole)
+            res[i.key()] = i.value();
+    }
+    return res.values();
+}
+
+// 自定义插入对象函数的参数可以使用：`const QVariantMap map`
+
+    QString type = map["type"].toString();
+    QString size = map["size"].toString();
+ 
+    MyType data(type, size);
+ 
+    insert(count(), data);
+// 注意把插入和删除代码块放在发送和结束的信号内。
+
+void DataModel::insert(int index, const Data &data)
+{
+    if(index < 0 || index > dataList_.count()) {
+        return;
+    }
+ 
+    emit beginInsertRows(QModelIndex(), index, index);
+    dataList_.insert(index, data);
+    emit endInsertRows();
+//    emit countChanged(m_data.count());
+}
+ 
+void DataModel::remove(int index)
+{
+    if(index < 0 || index >= dataList_.count()) {
+        return;
+    }
+ 
+    beginRemoveRows(QModelIndex(), index, index);
+    dataList_.removeAt(index);
+    endRemoveRows();
+}
+ 
+ 
+void DataModel::append(const QString &title,const QString &color)
+{
+    insert(count(), Data(title,color));
+}
+ 
+ 
+int DataModel::count() const
+{
+    return rowCount(QModelIndex());
+
+————————————————
+版权声明：本文为CSDN博主「风斜夜」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/fxy0325/article/details/81434762
 ```
 
 ##### 视图类型：
@@ -1403,7 +1618,11 @@ public: // pojo类有两个变量，type和size
 
 推荐使用`Loader`
 
+##### 注意
 
+关于拖拽，参考https://blog.csdn.net/zhengtianzuo06/article/details/78631977，由于设置交互事件，会影响鼠标滚动和拖拽，所以进行了修改
+
+`interactive: !isClicked`
 
 #### 多媒体
 
@@ -1672,7 +1891,7 @@ MessageBoard{
 
 `obj = component.create()`
 
-`QMetaObject::invokeMethod(obj,"函数名",Q_RETURN_ARG(QVariant，接收到哪个变量),Q_ARG(QVariant,传参变量))`
+`QMetaObject::invokeMethod(obj,"函数名",Q_RETURN_ARG(QVariant，本地定义一个变量来接收返回值),Q_ARG(QVariant,向函数传递的变量参数))`
 
 **C++中关联和QML信号**
 
@@ -1688,4 +1907,4 @@ MessageBoard{
 
 * `xmlListModel`
 * `XmlHttpRequest`组件
-* `WebSocket`与服务器进行HTTP请求
+* `WebSocket`与服务器进行HTTP请求 

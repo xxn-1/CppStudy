@@ -348,6 +348,8 @@ QWDlgManual::~QWDlgManual()
 
 * `qobject_cast<type>()`将一个类动态转换成其父类
 
+* 
+
 ##### 属性系统
 
 属性值可以通过`QObject`实例对象的`property`方法获取
@@ -445,6 +447,7 @@ void Person::setName(const QString &name)
 * `Q_DECL_IMPORT`,`Q_DECL_EXPORT`:使用或设计共享库时，用于导入或导出库的内容。
 * `Q_DECL_OVERRIDE`:可以代替以前`override`的位置，转而使用该宏代替关键字。
 * `Q_DECL_FINAL`:代替原来的`final`关键字，表示不能被继承的类。
+* `Q_DECLARE_METATYPE(自己的类型)`
 * `Q_UNUSED(参数名)`在函数中定义却没有使用的变量可以使用该宏避免警告。
 * `foreach(x,容器变量)`代替以前的范围for
 * `forever{代码块}`构造一个无限循环
@@ -905,6 +908,8 @@ ui->table->setItem(行号,类::列字段,item);
 * `QAbstractItemModel`
 * `QAbstractListModel`
 * `QAstractTableModel`
+
+![img](https://img-blog.csdnimg.cn/img_convert/2d6db92c9f0bd3020d3b21d4bb960885.png)
 
 QT提供的视图组件如下：**组件通过setModel()直接显示数据**
 
