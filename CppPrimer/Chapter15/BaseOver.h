@@ -3,12 +3,12 @@ using namespace std;
 class BaseOver : public Base
 {
 public:
-    Base *clone() &
+    Base *clone() & override
     {
         cout << "copy";
         return new BaseOver(*this);
     }
-    Base *clone() &&
+    Base *clone() && override
     {
         cout << "move";
         return new BaseOver(std::move(*this));
