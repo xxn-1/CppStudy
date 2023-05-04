@@ -2239,3 +2239,48 @@ MessageBoard{
 * `xmlListModel`
 * `XmlHttpRequest`组件
 * `WebSocket`与服务器进行HTTP请求  
+
+#### 一些功能使用
+
+##### Item截图
+
+使用`item`组件的`grabToImage(function(result){},Qt.size(x,x))`可以将组件的表面截图，常用的`result.saveToFile("xxx.png")`保存为图片，`result.url`获取图片URL可以赋值给Image的`source`。
+
+##### 新创组件中的某个组件的属性
+
+将该属性定义一个别名放置在根组件中暴露，外部组件使用时定义该别名即可修改其内部组件的属性。
+
+##### 定义全局属性
+
+在一个`XXX.qml`添加定义属性，然后在外部组件中可以直接引用`XXX.组件名`获得属性值
+
+##### FocusScope
+
+一个该组件中只有一个组件的Focus能被设置为True
+
+##### 一些可能经常使用的组件
+
+* `Flickable`可拖拽
+* `ScrollView`滚轮
+
+##### TextField
+
+通过style可以设置pi'f
+
+     TextField {
+     
+                style: TextFieldStyle{
+     
+                    background: BorderImage {
+                        id: textFieldBorderImage
+                        source: "qrc:/img/textfield_1.png"
+                        width: windows.width / columnFactor; height: 100
+                        border.left: 5; border.top: 5
+                        border.right: 5; border.bottom: 5
+                    }
+     
+                }
+                implicitWidth: windows.width / columnFactor
+            }
+    
+    

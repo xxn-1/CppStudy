@@ -308,9 +308,9 @@ template<typename T>
 const Rational<T> doMultiply(const Rational& lhs,
                                              const Rational& rhs){
     ...
-        return Rational(...);
+        return Rational(相×);
 }
-// 做实际乘法
+// 做实际乘法，下面这个函数要在类中定义
 friend Rational operator*(const Rational& lhs,
                                            const Rational& rhs){
         doMultiply(lhs,rhs);
