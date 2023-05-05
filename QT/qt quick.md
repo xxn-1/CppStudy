@@ -323,7 +323,7 @@ js文件导入QML模块：`.import 模块 版本号 as ...`
    var newObject = Qt.createQmlObject('import QtQuick 2.2;Rectangle{...}',父对象,新对象文件相关的文件路径)
    ```
 
-   **动态删除对象：**只能删除动态创建的对象。
+   **动态删除对象：**只能删除动 态创建的对象。
 
    通过：`对象.destody()`删除
 
@@ -2261,7 +2261,9 @@ MessageBoard{
 ##### 一些可能经常使用的组件
 
 * `Flickable`可拖拽
-* `ScrollView`滚轮
+* `ScrollView`滚轮，想修改其中的滚动条可以在其中定义`ScrollBar.horizontal||ScrollBar.vertical`
+* `Timer`
+* `FontLoader`
 
 ##### TextField
 
@@ -2282,5 +2284,38 @@ MessageBoard{
                 }
                 implicitWidth: windows.width / columnFactor
             }
-    
-    
+
+#####     JS获取某个组件的属性、属性值
+
+js自带对象`Object`
+
+```
+Object.keys(对象id) // 获取对象属性，包含了组件自定义属性
+Object.values(对象id)
+Object.entries(对象id)
+```
+
+##### 一些全局对象
+
+* `Screen`获取当前窗口相关属性
+* `Object`获取某个组件相关属性
+
+##### 抗锯齿：
+
+所有继承自`Item`组件的对象都有`antialiasing`属性，该属性设置组件边缘抗锯齿，默认`false`不抗锯齿，开启后有额外的性能消耗。
+
+##### 拖拽
+
+##### implicit[Width/Height]
+
+width、height只是设置了该控件的框架的宽度和高度，但其中的内容的大小的值是由implicitWidth/implicitHeight属性表示的。一个控件的width和height在控件初始化的时候便确定好了，而implicitWidth/implicitHeight是跟随着控件包含的内容的变化而变化的。
+
+**在没有设置width/height时使用implicit属性大小**
+
+如图片：`implicitWidth/Height`默认初始化为图片的分辨率大小。
+
+在控件作为delegate的代理控件时，控件需要在程序启动后动态的加载同时匹配内容的宽度高度时，就需要使用implicitWidth/implicitHeight。就像是一个仓库的建筑尺寸大小和仓库内存放的物品的大小的区别。
+
+##### ctrl+滚轮
+
+` onWheel: {                if(wheel.modifiers& Qt.ControlModifier){`
