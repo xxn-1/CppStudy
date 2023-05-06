@@ -336,7 +336,7 @@ js文件导入QML模块：`.import 模块 版本号 as ...`
    }
    ```
 
-   
+3. 创建一个`Component`组件，组件需要定义一个`id`，通过`id.createObject`动态创建，或通过`Loader`动态创建组件。
 
 ##### 对象类型
 
@@ -2319,3 +2319,130 @@ width、height只是设置了该控件的框架的宽度和高度，但其中的
 ##### ctrl+滚轮
 
 ` onWheel: {                if(wheel.modifiers& Qt.ControlModifier){`
+
+##### `RadialGradient`径向渐变
+
+可以做水波纹
+
+```C
+import QtQuick 2.12
+import QtGraphicalEffects 1.0
+ 
+Item {
+    id: control
+    implicitWidth: 100
+    implicitHeight: 100
+    visible: false
+    property double wave_offset: 0.0
+    property color wave_color: "red"
+ 
+    RadialGradient{
+        id: gradient
+        anchors.fill: parent
+        //horizontalRadius: 0
+        //verticalRadius: 0
+        //horizontalOffset: 0
+        //verticalOffset: 0
+ 
+        gradient: Gradient{
+            GradientStop{
+                position: (control.wave_offset>0.1)?(control.wave_offset-0.1):0
+                color: "transparent"
+            }
+            GradientStop{ position: control.wave_offset+0.09; color: control.wave_color }
+            GradientStop{ position: control.wave_offset+0.11; color: "transparent" }
+        }
+    }
+    PropertyAnimation{
+        id: animation
+        target: control
+        property: "wave_offset"
+        from:0
+        to:0.4
+        duration: 400
+        running: false
+        onStarted: control.visible=true
+        onFinished: control.visible=false
+    }
+ 
+    function click(ptx,pty){
+        animation.stop()
+        control.x=ptx-control.width/2
+        control.y=pty-control.height/2
+        animation.start()
+    }
+}
+// 上述组件放到ClickWave.qml中
+  MouseArea{
+        anchors.fill: parent
+        onClicked: {
+            click_wave.click(mouse.x,mouse.y)
+        }
+    }
+
+  MouseArea{
+        anchors.fill: parent
+        onClicked: {
+            click_wave.click(mouse.x,mouse.y)
+        }
+    }
+
+```
+
+##### 在信号和槽在不同线程中时
+
+`QMetaObject::invokeMethod(....,Qt::QueuedConnection)`
+
+##### 重叠区域事件传播
+
+##### 动态创建的窗口
+
+`Qt.WA_DeleteOnClose`
+
+##### 多线程
+
+使用 QObject::moveToThread() 方法，可以把一个继承自 QObject 的对象交给一个 QThread 对象，然后再调用 QThread 的 start() 函数使其全权处理事件循环，当我们需要让子线程执行某个任务，只需要发出对应的信号就可以。
+而继承 QThread 实现多线程方法，只能执行 run() 函数中的任务。使用 moveToThread 可以定义多个槽函数，用相应的信号触发即可。
+
+**关闭线程一般先quit，然后在wait，原因是在执行quit()后，调用wait()来等待QThread子线程的结束，这样就能保证在清除QThread时，其子线程是停止运行的。**
+
+```c++
+WorkObject * workObject = new WorkObject();//工作对象
+QThread * workThread = new QThread();//工作线程
+//转移线程
+workObject->moveToThread(workThread);
+//开始工作
+QObject::connect(workThread, &QThread::started, workObject, &WorkObject::starWork);
+//工作对象工作结束，停止线程
+QObject::connect(workObject, &WorkObject::workFinished, workThread, [&]() {
+   workThread->quit();
+    workThread->wait();
+});
+//工作线程停止，销毁工作对象
+QObject::connect(workThread, &QThread::finished, workObject, &WorkObject::deleteLater);
+//工作对象销毁，销毁工作线程
+QObject::connect(workObject, &WorkObject::destroyed, workThread, &QThread::deleteLater);
+//线程销毁
+QObject::connect(workThread, &QThread::destroyed, [&]() {
+    qDebug() << "workThread 销毁" << endl;
+ });
+//启动线程
+ workThread->start();
+
+```
+
+##### 模块化加载图片
+
+[qml加载图片资源的四种方式_51CTO博客_qt加载图片](https://blog.51cto.com/u_12606971/5582941)
+
+##### 启动界面
+
+**使得启动界面结束后才开始运行真正的界面**
+
+```c
+flags:Qt.SplashScreen|Qt.WindowStaysOnTopHint // 后面这个是置于所有窗口最顶层，可以不写
+```
+
+##### Action
+
+定义快捷键等
