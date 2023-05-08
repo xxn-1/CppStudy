@@ -9,6 +9,14 @@
 using namespace std;
 // 求1出现的次数
 //https://cloud.tencent.com/developer/beta/article/1967368?areaSource=&traceId=
+int count_one(int n) {
+    int count = 0;
+    while(n) {
+        n = n&(n-1);
+        count++;
+    }
+    return count;
+}
 inline unsigned count_bits(uint64_t v)
 {
     v = (v & 0x5555555555555555) + ((v >> 1) & 0x5555555555555555);

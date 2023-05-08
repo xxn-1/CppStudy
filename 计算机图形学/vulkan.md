@@ -234,6 +234,62 @@ Vulkan所有命令都支持从多个线程并发调用，**但是命令中使用
 
 当命令需要传达成功或状态信息时，返回成功完成代码(这些代码都大于0)，错误代码都是负值。返回代码通过`VkResult`类型定义，这是一个枚举类型
 
+```
+成功代码
+VK_SUCCESS命令已成功完成
+VK_NOT_READY栅栏或查询尚未完成
+VK_TIMEOUT等待操作尚未在指定的 时间
+VK_EVENT_SET发出事件信号
+VK_EVENT_RESET事件未发出信号
+VK_INCOMPLETE返回数组对于结果来说太小
+VK_SUBOPTIMAL_KHR交换链不再与表面匹配 完全是属性，但仍可用于呈现到表面 成功。
+VK_THREAD_IDLE_KHR延迟的操作未完成，但存在 在此调用时，此线程当前没有工作要做。
+VK_THREAD_DONE_KHR延迟的操作未完成，但存在 没有剩余的工作分配给其他线程。
+VK_OPERATION_DEFERRED_KHR请求推迟操作，并且 至少有一些工作被推迟了。
+VK_OPERATION_NOT_DEFERRED_KHR请求延迟操作 并且没有推迟任何操作。
+VK_PIPELINE_COMPILE_REQUIRED请求的管道创建将 需要编译，但应用程序请求编译为 不执行。
+
+错误代码
+VK_ERROR_OUT_OF_HOST_MEMORY主机内存分配失败。
+VK_ERROR_OUT_OF_DEVICE_MEMORY设备内存分配具有 失败。
+VK_ERROR_INITIALIZATION_FAILED对象的初始化可以 由于特定于实现的原因而未完成。
+VK_ERROR_DEVICE_LOST逻辑或物理设备已丢失。 查看丢失的设备
+VK_ERROR_MEMORY_MAP_FAILED内存对象的映射失败。
+VK_ERROR_LAYER_NOT_PRESENT请求的图层不存在或 无法加载。
+VK_ERROR_EXTENSION_NOT_PRESENT请求的扩展不是 支持。
+VK_ERROR_FEATURE_NOT_PRESENT不支持请求的功能。
+VK_ERROR_INCOMPATIBLE_DRIVER请求的 Vulkan 版本是 驱动程序不支持或与 特定于实现的原因。
+VK_ERROR_TOO_MANY_OBJECTS该类型的对象过多 已创建。
+VK_ERROR_FORMAT_NOT_SUPPORTED不支持请求的格式 在此设备上。
+VK_ERROR_FRAGMENTED_POOL池分配由于以下原因而失败 池内存碎片。 仅当未尝试分配主机或设备时，才必须返回此信息 已创建内存以适应新的分配。 这应该优先返回 ，但前提是实现 确定池分配失败是由于碎片造成的。
+VK_ERROR_OUT_OF_POOL_MEMORY 超出池内存
+VK_ERROR_SURFACE_LOST_KHR曲面不再可用。
+VK_ERROR_NATIVE_WINDOW_IN_USE_KHR请求的窗口已存在 被 Vulkan 或其他 API 以阻止其 再次使用。
+VK_ERROR_OUT_OF_DATE_KHR表面发生了变化，使得 它不再与交换链兼容，并进一步呈现 使用交换链的请求将失败。 应用程序必须查询新的图面属性并重新创建其 交换链，如果他们希望继续向表面展示。
+VK_ERROR_INCOMPATIBLE_DISPLAY_KHR交换链使用的显示 不使用相同的可呈现图像布局，或者在 阻止共享图像的方式。
+VK_ERROR_INVALID_SHADER_NV一个或多个着色器编译失败 或链接。 如果启用，更多详细信息将报告回应用程序。VK_EXT_debug_report
+VK_ERROR_OUT_OF_POOL_MEMORY池内存分配失败。 仅当未尝试分配主机或设备时，才必须返回此信息 已创建内存以适应新的分配。 如果失败肯定是由于池碎片造成的，则应改为返回。VK_ERROR_FRAGMENTED_POOL
+VK_ERROR_INVALID_EXTERNAL_HANDLE外部句柄无效 指定类型的句柄。
+VK_ERROR_FRAGMENTATION描述符池创建失败，原因 到碎片化。
+VK_ERROR_INVALID_DEVICE_ADDRESS_EXT缓冲区创建失败 因为请求的地址不可用。
+VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS缓冲区创建 或内存分配 失败，因为请求的地址不可用。 着色器组句柄分配失败，因为请求的着色器 组句柄信息不再有效。
+VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT对 创建时出现故障的交换链 没有独占全屏访问权限。 这可能是由于依赖于实现的原因而发生的，在 应用程序的控件。VK_FULL_SCREEN_EXCLUSIVE_APPLICATION_CONTROLLED_EXT
+VK_ERROR_COMPRESSION_EXHAUSTED_EXT映像创建失败 因为压缩所需的内部资源已耗尽。 仅当请求固定速率压缩时，才必须返回此值。
+VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR请求的 VkImageUsageFlags 不受支持。
+VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR请求的 不支持视频图片布局。
+VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR视频配置文件 不支持通过 VkVideoProfileInfoKHR：： 指定的操作。videoCodecOperation
+VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR设置参数格式 在请求的 VkVideoProfileInfoKHR 链中不受支持。
+VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR特定于编解码器 请求的 VkVideoProfileInfoKHR 链中的参数不是 支持。
+VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR指定的视频 不支持标准标头版本。
+VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR指定的视频标准 参数不符合 的句法或语义要求 使用的视频压缩标准或从参数派生的值 根据使用的视频压缩标准定义的规则做 不遵守视频压缩标准或 实现。
+VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT提供的二进制着色器 代码与此设备不兼容。
+VK_ERROR_UNKNOWN发生未知错误;要么 应用程序提供了无效的输入，或者实现失败 发生。
+如果命令返回运行时错误，除非另有指定，否则任何输出 参数将具有未定义的内容，除非输出 参数是一个结构，带有和字段，那些 字段将不被修改。 任何链接的结构也将具有未定义的内容， 除此之外，并且将不被修改。sTypepNextpNextsTypepNext
+VK_ERROR_OUT_OF_*_MEMORY错误不会修改任何当前存在的 火神对象。 已成功创建的对象仍可由 应用程序。
+```
+
+
+
 ### 数值表示和计算
 
 实现通常执行**浮点计算**。
@@ -304,6 +360,12 @@ $$
 
 一个` VkPhysicalDevice` (对应物理设备)可以有多个 `VkDevice`(对应逻辑设备)。
 
+### 类型查询网站
+
+[Index of /vulkan/specs/1.3-extensions/man/html (khronos.org)](https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/)
+
+一些扩展名和返回码都可以在其中查询
+
 ### 初始化配置
 
 在使用Vulkan前，应用程序必须通过加载Vulkan命令并创建`	VkInstance`对象初始化它，一个进程只能有一个`VkInstance`。
@@ -317,9 +379,11 @@ $$
 * `vKcreateInstance`第二个参数为一个内存分配器
 * `vkDestroyInstance(instance,nullptr)`第二个参数是内存分配器，如果创建时使用了分配器，那么删除的时候也需要提供一个与之兼容的 `VkAllocationCallbacks`。第一个输入参数 可以是NULL，或者一个合法的` VkInstance`句柄
 
-* `vkEnumerateInstanceExtensionProperties`枚举扩展
+* `vkEnumerateInstanceExtensionProperties`枚举**实例**扩展
+* `vkEnumerateDeviceExtensionProperties()`枚举**物理设备**扩展
 * `vkEnumerateInstanceVersion`获取Vulkan版本，为NULL时版本为1.0，否则为其返回值
 * `VK_MAKE_VERSION(1, 0, 0);`创建版本1.0.0
+* `VkDebugReportCallbackCreateInfoEXT` 或`VkDebugUtilsMessengerCreateInfoEXT` 结构链接到给予 `vkCreateInstance 函数中的`的` VkInstanceCreateInfo` 结构的 pNext 元素。可以捕获创建或销毁实例时发生的事件，其中会**传入一个回调函数**。
 
 ```C++
 
@@ -414,9 +478,14 @@ std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtens
 
 ```
 
+##### 命令获取
 
+Vulkan已经内置了各种类型的命令指针，**格式为**：`PFN_命令名`可以强制转化返回的指针为该类型
 
 所有Vulkan命令的函数指针可以通过以下获取，**返回的指针必须强制转化为要查询的实际的指针函数**：
+
+* `vkGetInstanceProcAddr`实例层面的函数指针**对这个实例所拥有的所有对象都有效**
+* `vkGetDeviceProcAddr`设备层面的函数指针，**只能在查询这个函数指针的逻辑设备上使用该指针。**
 
 ```c++
 vkGetInstanceProcAddr(instance,pName);
@@ -429,7 +498,81 @@ vkGetInstanceProcAddr(instance,pName);
 vkGetDeviceProcAddr(vkDevice,pName); // 返回的函数指针可能指向调用不同vkDevice对象或其子对象的不同实际实现的代码。获取特定于设备的函数指针  
 ```
 
+例子：
 
+该类型是扩展，可以在Instance实例化期间，可以捕获创建或销毁实例时发生的事件，其中会**传入一个回调函数**。
+
+```c++
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo, const VkAllocationCallbacks *pAllocator, VkDebugUtilsMessengerEXT *pDebugMessenger)
+{
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr)
+    {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    }
+    else
+    {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks *pAllocator)
+{
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr)
+    {
+        func(instance, debugMessenger, pAllocator);
+    }
+}
+void setupDebugMessenger()
+{
+    if (!enableValidationLayers)
+        return;
+
+    VkDebugUtilsMessengerCreateInfoEXT createInfo;
+    populateDebugMessengerCreateInfo(createInfo);
+
+    if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to set up debug messenger!");
+    }
+}
+void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo)
+{
+    createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = debugCallback;
+}
+{
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+  	populateDebugMessengerCreateInfo(debugCreateInfo);
+    createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo;
+}
+```
+
+##### Vulkan自定义函数
+
+但凡要定义可以被Vulkan使用的函数，如回调函数，必须要使用一些宏：
+
+* `VKAPI_ATTR`
+* `VKAPI_CALL`
+
+```c++
+VKAPI_ATTR 返回类型 VKAPI_CALL 函数名() {
+	...
+}
+```
+
+##### Instance附加扩展
+
+扩展可以分为两类：实例扩展和设备扩展。实例扩展用于在某个平台上整体增强Vulkan系统。这种扩展或者通过设备无关的层提供，或者只是每个设备都暴露出来并提升进实例的扩展。设备扩展用于扩展系统里一个或者多个设备的能力，但是这种能力没必要每个设备都具备。
+
+通过向`VkInstanceCreateInfo`类型的`pNext`添加，**要开启对应的扩展时，必须在VkInstanceCreateInfo的扩展列表的扩展名中插入对应的支持扩展名来开启对应的扩展。**扩展名的结构为：`VK_EXT_XXX_XXX_EXTENSION_NAME`，扩展名可以在类型查询网站找到，在类型定义上有一条注释，将其全部大写，后添加后缀`_EXTENSION_NAME`。**一般首先枚举可用扩展，获得扩展列表后向其中push我们想要添加的新扩展名即可**
+
+* `VkDirectDriverLoadingListLUNARG `可以添加其它驱动程序，允许应用程序自己发布驱动，不应该使用任何需要安装的驱动（如硬件驱动）。
+* `VkDebugReportCallbackCreateInfoEXT` 或`VkDebugUtilsMessengerCreateInfoEXT` 结构链接到给予 `vkCreateInstance 函数中的`的` VkInstanceCreateInfo` 结构的 pNext 元素。可以捕获创建或销毁实例时发生的事件，其中会**传入一个回调函数**。
 
 ### 选择物理设备
 
@@ -618,6 +761,30 @@ int rateDeviceSuitability(VkPhysicalDevice device) {
 
 * `vkGetPhysicalDeviceQueueFamilyProperties2`获取物理设备支持的队列族
 
+* `vkEnumerateDeviceExtensionProperties`在创建设备之前，**查询物理设备支持的扩展**
+
+* `vkEnumeratePhysicalDeviceGroups`用于获取支持的device groups。如果若干个physical devices属于同一个的device group，则可以将一个device与它们同时关联。一个device group的意思是若干个physical devices，互相可以访问内存，以及录制一个single command buffer，可以执行在所有的physical devices上。Device group是通过 `vkEnumeratePhysicalDeviceGroups` 查询，对应的device是通过device group中physical device的子集，将其传入 `VkDeviceGroupDeviceCreateInfo` 来创建。同一个device group中的两个physical devices，必须支持相同的extension、feature和属性，通过 `vkGetPhysicalDevice*` 获取的属性也基本相同（允许因为连接了不同的display、compositor等导致一些特定的query不同，这里就不列出来了）。
+
+  ```c++
+  typedef struct VkPhysicalDeviceGroupProperties {
+  	//当前结构体的类型，必须是 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES
+  	VkStructureType sType; 
+  	//NULL，或者扩展该结构体的另外一个结构体，必须是NULL 
+  	void* pNext; 
+  	//当前device group中physical devices的数量 
+  	uint32_t physicalDeviceCount; 
+  	//一个包含 VK_MAX_DEVICE_GROUP_SIZE 个 VkPhysicalDevice 元素的数组，其中包含了当前device group中所有的physical devices，所以，前 physicalDeviceCount 个元素是合法的。 
+  	VkPhysicalDevice physicalDevices[VK_MAX_DEVICE_GROUP_SIZE]; 
+  	//指定根据group创建的device，所分配的device memory的方式，通过 VkMemoryAllocateFlagsInfo 的 deviceMask 设置。
+  	//如果为 VK_FALSE ，那么所有的device memory都可以被 group中的所有physical devices共享。
+  	//如果 physicalDeviceCount 为 1，那么 subsetAllocation 必须是 VK_FALSE 。
+  	VkBool32 subsetAllocation;  
+  } VkPhysicalDeviceGroupProperties;
+  
+  ```
+
+  
+
 队列族结构体：`VkQueueFamilyProperties`包括支持的操作类型和基于当前队列簇可以创建的有效队列数，判断支持某个队列操作类型：`xxx.queueFlags & VK_QUEUE_...`
 
 #### 物理设备内存
@@ -656,6 +823,8 @@ Vulkan里的设备内存是指，设备能够访问到并且用作纹理和其�
 
 ### 逻辑设备
 
+Device将被用于：1.创建queue，2.创建和跟踪各种各样的synchronization constructs，3.分配、释放、管理内存，4.创建和破坏 command buffer和command buffer pool，5.创建、破环和管理graphics state（pipeline、resource descriptor等）
+
 * `VkResultDevice`
 
 * `VkDeviceCreateInfo`
@@ -666,14 +835,34 @@ Vulkan里的设备内存是指，设备能够访问到并且用作纹理和其�
       const void*                        pNext;
       VkDeviceCreateFlags                flags;
       uint32_t                           queueCreateInfoCount;
+      	//为 pQueueCreateInfos 数组的尺寸，必须大于0
       const VkDeviceQueueCreateInfo*     pQueueCreateInfos;
+      	//一个指向 queueCreateInfoCount 个 VkDeviceQueueCreateInfo 数组的指针，创建logical device的时候同步创建这些queues
+  
       uint32_t                           enabledLayerCount;
       const char* const*                 ppEnabledLayerNames;
+      	//当前device开启的extension数量
+  
       uint32_t                           enabledExtensionCount;
+      // 扩展名必须是通过vkEnumerateDeviceExtensionProperties获取的其中之一
       const char* const*                 ppEnabledExtensionNames;
+      	//NULL，或者一个指针指向 VkPhysicalDeviceFeatures 结构体，其中用bool值指出需要开启的feature。
       const VkPhysicalDeviceFeatures*    pEnabledFeatures;
   } VkDeviceCreateInfo;
   ```
+
+  ```
+  针对VkDeviceCreateInfo的pNext
+  pNext 必须是 NULL，或者VkDeviceGroupDeviceCreateInfo,VkPhysicalDevice16BitStorageFeatures,VkPhysicalDevice8BitStorageFeatures,VkPhysicalDeviceBufferDeviceAddressFeatures,VkPhysicalDeviceDescriptorIndexingFeatures,VkPhysicalDeviceFeatures2,VkPhysicalDeviceHostQueryResetFeatures,VkPhysicalDeviceImagelessFramebufferFeatures,VkPhysicalDeviceMultiviewFeatures,VkPhysicalDeviceProtectedMemoryFeatures,VkPhysicalDeviceSamplerYcbcrConversionFeatures,VkPhysicalDeviceScalarBlockLayoutFeatures,VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures,VkPhysicalDeviceShaderAtomicInt64Features,VkPhysicalDeviceShaderDrawParametersFeatures,VkPhysicalDeviceShaderFloat16Int8Features,VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures,VkPhysicalDeviceTimelineSemaphoreFeatures,VkPhysicalDeviceUniformBufferStandardLayoutFeatures,VkPhysicalDeviceVariablePointersFeatures,VkPhysicalDeviceVulkan11Features,VkPhysicalDeviceVulkan12Features, or VkPhysicalDeviceVulkanMemoryModelFeatures。
+  
+  如果 pNext 包含 VkPhysicalDeviceVulkan11Features ，那么它必须不能包含：
+  VkPhysicalDevice16BitStorageFeatures,VkPhysicalDeviceMultiviewFeatures, VkPhysicalDeviceVariablePointersFeatures,VkPhysicalDeviceProtectedMemoryFeatures,VkPhysicalDeviceSamplerYcbcrConversionFeatures, or VkPhysicalDeviceShaderDrawParametersFeatures。
+  
+  如果 pNext 包含 VkPhysicalDeviceVulkan12Features ，那么它必须不能包含 ：
+  VkPhysicalDevice8BitStorageFeatures,VkPhysicalDeviceShaderAtomicInt64Features,VkPhysicalDeviceShaderFloat16Int8Features,VkPhysicalDeviceDescriptorIndexingFeatures,VkPhysicalDeviceScalarBlockLayoutFeatures,VkPhysicalDeviceImagelessFramebufferFeatures,VkPhysicalDeviceUniformBufferStandardLayoutFeatures,VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures,VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures,VkPhysicalDeviceHostQueryResetFeatures,VkPhysicalDeviceTimelineSemaphoreFeatures,VkPhysicalDeviceBufferDeviceAddressFeatures, or VkPhysicalDeviceVulkanMemoryModelFeatures。
+  ```
+
+  
 
 * `VkDeviceQueueCreateInfo`
 
@@ -686,8 +875,78 @@ Vulkan里的设备内存是指，设备能够访问到并且用作纹理和其�
       uint32_t                    queueCount; // 为了在这个族里创建队列，将queueCount设置为你希望创建的队列个数。当然，设备在你选择的族中支持的队列数量必须不小于这个值。
       const float*                pQueuePriorities; // 指向浮点数数组，表示提交给每个队列的工作的相对优先级，取值范围：0.0~1.0
   } VkDeviceQueueCreateInfo;
+  typedef enum VkDeviceQueueCreateFlagBits {
+  	// Provided by VK_VERSION_1_1 
+  	//指定 device queue 是一个 protected-capable 的queue
+  	VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT = 0x00000001, 
+  } VkDeviceQueueCreateFlagBits;
+  
+  ```
+
+* `VkDeviceGroupDeviceCreateInfo`要关联的一组物理设备
+
+  ```c++
+  typedef struct VkDeviceGroupDeviceCreateInfo {
+  	//当前结构体的类型，必须是 VK_STRUCTURE_TYPE_DEVICE_GROUP_DEVICE_CREATE_INFO
+  	VkStructureType sType; 
+  	//NULL，或者扩展该结构体的另外一个结构体
+  	const void* pNext; 
+  	//pPhysicalDevices 数组的元素数量，如果这个数字不为0， vkCreateDevice 的 physicalDevice 参数必须是 pPhysicalDevices 中的一个元素
+  	uint32_t physicalDeviceCount; 
+  	//一个 physicalDeviceCount 个 physical device 的数组，其中的元素都属于同一个device group（从 vkEnumeratePhysicalDeviceGroups 获取）。
+  	//是logical device关联的一个有序list，必须是一个device group的子集，可以与被get出来的时候的顺序不同。
+  	//该顺序决定了每个physical device 的device index。
+  	//一些命令和结构体用于若干个physical device会用到device index或者通过device index组成的device mask。数组中的每个元素必须独一无二。
+  	const VkPhysicalDevice* pPhysicalDevices;
+  } VkDeviceGroupDeviceCreateInfo;
+  
   ```
 
   
 
-​	
+* `vkDestroyDevice(device, nullptr); `删除逻辑设备，删除前要显式删除逻辑设备创建的对象。第二个参数对应创建时的内存分配器。为了确保device上没有活动的工作，可以使用 `vkDeviceWaitIdle` 来确保。在销毁 device之前，应用程序负责销毁/释放 device 通过`vkCreate*` 或者`vkAllocate*` 这些API 创建的Vulkan对象。
+
+* `vkDeviceWaitIdle`在销毁设备之前，需要保证它没有正在执行来自应用程序的任何工作。为了达到这个目的，调用vkDeviceWaitIdle()
+
+* `vkGetDeviceQueue(device, queue_index, 0, &queueHandle); `获取逻辑设备中某个queue的handle。第二个参数必须是创建logical device的时候，包含在 `VkDeviceQueueCreateInfo` 中的queue family index。第三个参数为队列数量必须小于创建时对应队列信息的数量。
+
+* `vkGetDeviceQueue2`：`vkGetDeviceQueue` 只能获取 `VkDeviceQueueCreateInfo` 的flag为0的queue，如果想获取flag不为0的queue，需要用 `vkGetDeviceQueue2`。第二个参数：
+
+  ```c++
+  typedef struct VkDeviceQueueInfo2 {
+  	//当前结构体的类型，必须是 VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2
+  	VkStructureType sType; 
+  	//NULL，或者扩展该结构体的另外一个结构体，必须是NULL
+  	const void* pNext; 
+  	//是创建该queue时候的 VkDeviceQueueCreateFlags flag，必须是 VkDeviceQueueCreateFlagBits 的合法组合。
+  	//如果在创建device的时候，没有创建对应flag的queue，则返回NULL
+  	VkDeviceQueueCreateFlags flags; 
+  	//queue 所在的 queue family 的 index，必须是创建logical device的时候，包含在 VkDeviceQueueCreateInfo 中的queue family index
+  	uint32_t queueFamilyIndex; 
+  	//queue 在 queue family 中的 index，必须小于创建logical device的时候，包含在 VkDeviceQueueCreateInfo 中的 queueCount
+  	uint32_t queueIndex; 
+  } VkDeviceQueueInfo2;
+  
+  ```
+
+  
+
+
+
+>
+>
+>`vkGetPhysicalDeviceQueueFamilyProperties` 获取到的 pQueueFamilyProperties 中的 index 都是独一无二的，这些index被用于创建 queue，与 `vkCreateDevice` 中的 `VkDeviceQueueCreateInfo` 中的 queueFamilyIndex 相对应。
+>
+>queue family index在很多地方会使用到，除了这里之外，还有，在创建 `VkCommandPool` 的时候，需要在 `VkCommandPoolCreateInfo` 中设置一个 queue family index。 这个Pool中的Command buffer 只能 submit到该 queue family 中的queue中。
+>
+>在创建`VkImage` 和 `VkBuffer`的时候，也需要通过 `VkImageCreateInfo` 和 `VkBufferCreateInfo` 指定 queue families，指定只有这些 queue familyies可以访问这些资源。
+>
+>当插入一个 `VkBufferMemoryBarrier` 或者 `VkImageMemoryBarrier` 的时候，需要设置一个source和一个desination queue family来指定，将buffer或者image的ownership从一个queue family转移到另外一个queue family。
+>
+>
+
+
+
+#### 	关联多个物理设备
+
+一个逻辑设备可以关联多个物理设备，方法：在pNext中加入 `VkDeviceGroupDeviceCreateInfo` 结构体
