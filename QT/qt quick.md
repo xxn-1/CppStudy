@@ -2446,3 +2446,14 @@ flags:Qt.SplashScreen|Qt.WindowStaysOnTopHint // 后面这个是置于所有窗�
 ##### Action
 
 定义快捷键等
+
+##### 自定义类型
+
+QT中使用自定义的别名或其他，需要暴露给QT系统知道：`Q_DECLARE_METATYPE(类型名)`
+
+* 需要在槽函数中使用自定义类型或者类 首先需要使用`Q_DECLARE_METATYPE` 注册类型       
+* 如果需要跨线程传递自定义类型或者类 就还需要使用`qRegisterMetaType` 注册
+
+##### 文件读取速率
+
+实现每秒读取文件控制速率，可以通过`QTimer`控制每秒来调用事件读取`n`帧，`n`是自己定下的每秒读取帧数量的标准。然后对象中定义`radio`速率来调整即可。

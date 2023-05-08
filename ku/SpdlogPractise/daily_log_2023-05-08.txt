@@ -1,0 +1,7 @@
+[2023-05-08 08:50:45.174] [spdlog] [info] test s =success
+[2023-05-08 08:50:45.174] [spdlog] [trace] this is trace log
+[2023-05-08 08:50:45.174] [spdlog] [debug] this is debug log
+[2023-05-08 08:50:45.174] [spdlog] [info] this is info log
+[2023-05-08 08:50:45.174] [spdlog] [warning] this is warning log
+[2023-05-08 08:50:45.174] [spdlog] [error] this is a error log
+[2023-05-08 08:50:45.174] [spdlog] [critical] this is critical log

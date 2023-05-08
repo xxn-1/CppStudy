@@ -208,6 +208,35 @@ void get(T t) {
 }
 ```
 
+#### 对模板类定义一些额外的特殊类型是有用的
+
+* 迭代器：
+
+  ```c++
+  using iterator_category = std::forward_iterator_tag; // 这里选择类型
+  using difference_type = std::ptrdiff_t;
+  using size_type = size_t;
+  using value_type = T;
+  using reference = T &;
+  using pointer = T *;
+  ```
+
+* 一般：
+
+  ```c++
+  using iterator = Iterator<T>;
+  using const_iterator = Iterator<const T>;
+  using type = XXX<T>
+  using value_type = T;
+  using size_type = ...
+  ```
+
+  
+
+
+
+
+
 #### 模板 -- 派生类调用积累模板成员名称
 
 在**派生类模板**中通过`this->`明确指涉调用获取**基类模板**内的成员名称
@@ -451,6 +480,58 @@ struct Factorial<0> {
 }
 cout << Factorial<10>::value << endl;
 ```
+
+#### 模板中别名的利用+偏特化(特化)的巧妙用处
+
+###### 实现约束
+
+```c++
+// 基础判断降级为helper
+template <typename>
+struct is_floating_point_helper : false_type {};
+template <>
+struct is_floating_point_helper<float> : true_type {};
+template <>
+struct is_floating_point_helper<double> : true_type {};
+template <>
+struct is_floating_point_helper<long double> : true_type {};
+// remove_reference和remove_const的声明
+template <typename>
+struct remove_const;
+template <typename>
+struct remove_reference;
+// 实际的is_floating_point
+template <typename T>
+struct is_floating_point : is_floating_point_helper<typename remove_const<typename remove_reference<T>::type>::type> {};
+```
+
+###### 实现去除引用
+
+```c++
+template <typename T>
+struct remove_reference {
+    using type = T;
+};
+template <typename T>
+struct remove_reference<T &> {
+    using type = T;
+};
+template <typename T>
+struct remove_reference<T &&> {
+    using type = T;
+};
+```
+
+###### 判断类型相同
+
+```c++
+template <typename, typename>
+struct is_same : false_type {};
+template <typename T>
+struct is_same<T, T> : true_type {};
+```
+
+###### ...
 
 #### new/delete Handler
 
