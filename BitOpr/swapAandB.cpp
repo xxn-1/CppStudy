@@ -12,8 +12,8 @@ inline void swap(int64_t &a,int64_t &b) {
 }
 
 int main() {
-    int64_t a = 3;
-    int64_t b = -4;
+    int64_t a = 1;
+    int64_t b = 1;
     swap(a,b);
     cout << a << " " << b << endl;
 }

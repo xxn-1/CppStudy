@@ -377,12 +377,30 @@ $$
 在创建`VkInstance`时可以为其提供足够的信息，可以告知驱动程序我们需要使用什么全局扩展：
 
 * `vKcreateInstance`第二个参数为一个内存分配器
+
 * `vkDestroyInstance(instance,nullptr)`第二个参数是内存分配器，如果创建时使用了分配器，那么删除的时候也需要提供一个与之兼容的 `VkAllocationCallbacks`。第一个输入参数 可以是NULL，或者一个合法的` VkInstance`句柄
 
 * `vkEnumerateInstanceExtensionProperties`枚举**实例**扩展
+
 * `vkEnumerateDeviceExtensionProperties()`枚举**物理设备**扩展
-* `vkEnumerateInstanceVersion`获取Vulkan版本，为NULL时版本为1.0，否则为其返回值
-* `VK_MAKE_VERSION(1, 0, 0);`创建版本1.0.0
+
+* `vkEnumerateInstanceVersion`获取Vulkan版本，为NULL时版本为1.0，否则为其返回值。**正确用法**：
+
+  ```c++
+      count_ version;
+      vkEnumerateInstanceVersion(&version);
+      std::cout << "Supported Vulkan Version is "
+                << VK_VERSION_MAJOR(version) << '.'
+                << VK_VERSION_MINOR(version) << '.'
+                << VK_VERSION_PATCH(version) << '\n';
+  ```
+
+  
+
+* `VK_MAKE_VERSION(1, 3, 0);`创建版本1.3.0应用版本和引擎版本
+
+* `VK_MAKE_API_VERSION(0, 1,3, 0)`API版本
+
 * `VkDebugReportCallbackCreateInfoEXT` 或`VkDebugUtilsMessengerCreateInfoEXT` 结构链接到给予 `vkCreateInstance 函数中的`的` VkInstanceCreateInfo` 结构的 pNext 元素。可以捕获创建或销毁实例时发生的事件，其中会**传入一个回调函数**。
 
 ```C++
@@ -573,6 +591,8 @@ VKAPI_ATTR 返回类型 VKAPI_CALL 函数名() {
 
 * `VkDirectDriverLoadingListLUNARG `可以添加其它驱动程序，允许应用程序自己发布驱动，不应该使用任何需要安装的驱动（如硬件驱动）。
 * `VkDebugReportCallbackCreateInfoEXT` 或`VkDebugUtilsMessengerCreateInfoEXT` 结构链接到给予 `vkCreateInstance 函数中的`的` VkInstanceCreateInfo` 结构的 pNext 元素。可以捕获创建或销毁实例时发生的事件，其中会**传入一个回调函数**。
+* `VkValidationFlagsEXT`可以选择希望实例希望将要禁用验证检查
+* `VkValidationFeaturesEXT`指定要启用或要禁用的验证特性
 
 ### 选择物理设备
 
@@ -619,10 +639,10 @@ VKAPI_ATTR 返回类型 VKAPI_CALL 函数名() {
   
   ////////////////// 设备类型
   typedef enum VkPhysicalDeviceType {
-  	VK_PHYSICAL_DEVICE_TYPE_OTHER = 0, //当前device不符合任何avaliable类型 
-  	VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1, //当前device为嵌入式或者与主机密切耦合的设备 
-  	VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2, //当前device为通过interlink与主机关联的独立处理器 
-  	VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU = 3, //当前device为虚拟机
+  	VK_PHYSICAL_DEVICE_TYPE_OTHER = 0, //设备与任何其它可用类型不匹配
+  	VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1, //当前设备通常嵌入主机或与主机紧密连接
+  	VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2, //当前设备通常是通过互连连接到主机的独立处理器
+  	VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU = 3, //当前device为虚拟环境中的虚拟节点
   	VK_PHYSICAL_DEVICE_TYPE_CPU = 4, //当前device运行在与主机相同的处理器上
   } VkPhysicalDeviceType;
   //vendorID 的枚举值，这个枚举随时可能更新，只有vk.xml和vulkan_core.h才包含了所有reserved Khronos vendor IDs。
@@ -638,7 +658,7 @@ VKAPI_ATTR 返回类型 VKAPI_CALL 函数名() {
   
   ```
 
-* `VkPhysicalDeviceProperties2`用于获取通过` vkEnumeratePhysicalDevices` 得到的physical device的属性
+* `VkGetPhysicalDeviceProperties2`用于获取通过` vkEnumeratePhysicalDevices` 得到的物理设备常规属性
 
 * `vkGetPhysicalDeviceFeatures`查询对纹理压缩，64位浮点数和多视图渲染(VR非常有用)等可选功能的支持:
 
@@ -823,6 +843,8 @@ Vulkan里的设备内存是指，设备能够访问到并且用作纹理和其�
 
 ### 逻辑设备
 
+逻辑设备独立于其他逻辑设备的状态和资源。
+
 Device将被用于：1.创建queue，2.创建和跟踪各种各样的synchronization constructs，3.分配、释放、管理内存，4.创建和破坏 command buffer和command buffer pool，5.创建、破环和管理graphics state（pipeline、resource descriptor等）
 
 * `VkResultDevice`
@@ -949,4 +971,4 @@ Device将被用于：1.创建queue，2.创建和跟踪各种各样的synchroniza
 
 #### 	关联多个物理设备
 
-一个逻辑设备可以关联多个物理设备，方法：在pNext中加入 `VkDeviceGroupDeviceCreateInfo` 结构体
+一个逻辑设备可以关联同属于一个设备组的多个物理设备，方法：在pNext中加入 `VkDeviceGroupDeviceCreateInfo` 结构体
