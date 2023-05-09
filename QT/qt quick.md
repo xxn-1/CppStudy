@@ -2457,3 +2457,111 @@ QT中使用自定义的别名或其他，需要暴露给QT系统知道：`Q_DECL
 ##### 文件读取速率
 
 实现每秒读取文件控制速率，可以通过`QTimer`控制每秒来调用事件读取`n`帧，`n`是自己定下的每秒读取帧数量的标准。然后对象中定义`radio`速率来调整即可。
+
+##### QT中Q_SLOT
+
+除了在slots下添加一堆函数作为槽函数，有时需要单独的设置槽函数，在函数前加`Q_SLOT`
+
+
+
+##### QT自定setter/getter
+
+只需要写上`QPROPERTY`即可，`alt+enter`自动生成。
+
+##### Model进行排序过滤
+
+`QSortFilterProxyModel`，可以继承该类实现自定义的过滤排序代理
+
+将自己定义的Model的对象传入代理中，`setSourceModel`来传入
+
+向列表传入Model时就传入代理的Model对象即可。
+
+排序：重写`lessThan()`
+
+* `dynamicSortFilter` : bool。是否在源模型的内容发生变化时动态排序和过滤。请注意，当 dynamicSortFilter 为 true 时，不应通过代理模型更新源模型。 例如，如果在 QComboBox 上设置代理模型，则使用更新模型的函数（例如 addItem()）将无法按预期工作。 另一种方法是将 dynamicSortFilter 设置为 false 并在将项目添加到 QComboBox 后调用 sort()。代理只是调整了两个数据集索引的映射关系，不是原Model的拷贝，增删改原数据会在代理上显现
+
+##### delete
+
+如果在程序某个功能中new的QObject对象没有父对象，则一定要将属性设置为Qt::WA_DeleteOnClose。
+
+如果存在父对象，一般不需要手动delete，在父对象销毁时自动销毁所有子对象
+
+**QT内置了一个特殊的删除Map中多线程的方法：`qDeleteAll`**
+
+##### 加载成一幅图片
+
+**其实Qt也有提供一个grabToImage接口，可以提取出图像，但是这个需要把显存中的数据复制到内存中，非常耗时，而这个ShaderEffectSource是完全GPU内实现，不存在拷贝到内存的开销，速度飞起。**
+
+设置`ShaderEffectSource`的`sourceItem`为要抓取对象的id即可，ShaderEffectSource默认情况下会随着设置的Item变化而变化的，在目前我们场景中不需要这个特性，因为我们希望的就是只渲染一次。所以有一个live的参数，要设置为false。使用时将其`active`设置为true即可
+
+**可以搭配QQuickPaintedItem来绘制Item，借助其显示**
+
+##### QQuickPaintedItem
+
+一个类，可以继承他绘制自己的Item，只需要实现paint方法即可。要想在其中处理鼠标事件，就调用父类的`setAcceptedMouseItem`方法
+
+其中可定义成员变量`QPen`，`QLineF`，`QPaint`，`QPaintPath`等等借助其绘制
+
+##### 保存配置信息
+
+用户通常希望应用程序能够记住其跨会话的设置（窗口大小和位置、选项等）。 此信息通常存储在 Windows 上的系统注册表中，以及 macOS 和 iOS 上的属性列表文件中。在 Unix 系统上，由于没有标准，许多应用程序使用 INI 文本文件。
+
+QSettings 是对这些技术的抽象，使用户能够以可移植的方式保存和恢复应用程序设置。它还支持自定义存储格式。
+
+* `    QSettings settings("产品名", "公司名");`
+* `settings.setIniCodec(QTextCodec::codecForName("UTF-8"))`
+
+* ```c++
+  // 如果需要在程序中多个文件使用同一个Settings，借助QCoreApplication::setOrganizationName() 和 QCoreApplication::setApplicationName() 指定组织名称和应用程序名称
+  QCoreApplication::setOrganizationName("MySoft");
+  QCoreApplication::setOrganizationDomain("mysoft.com");
+  QCoreApplication::setApplicationName("Star Runner");
+      ...
+  QSettings settings;
+  ```
+
+  ---
+
+  如果已存在具有相同键的设置，则现有值将被新值覆盖。 为提高效率，更改可能不会立即保存到永久存储中。（可以调用 sync() 来提交更改）
+
+  由于 QVariant 是 Qt Core 模块的一部分，因此它无法提供对 QColor、QImage 和 QPixmap 等数据类型的转换功能，这些都是 Qt GUI 的一部分。 换句话说，QVariant 中没有 toColor()、toImage() 或 toPixmap() 函数。
+
+  相反，可以使用 QVariant::value() 模板函数。 例如：
+
+      QSettings settings("MySoft", "Star Runner");
+      QColor color = settings.value("DataPump/bgcolor").value<QColor>();
+  对于 QVariant 支持的所有数据类型，包括 GUI 相关类型，逆转换（例如，从 QColor 到 QVariant）是自动的：
+
+      QSettings settings("MySoft", "Star Runner");
+      QColor color = palette().background().color();
+      settings.setValue("DataPump/bgcolor", color);
+  可以使用 QSettings 存储使用 qRegisterMetaType() 注册的自定义类型，这些类型具有用于流入和流出 QDataStream 的运算符。
+
+  始终使用相同的大小写引用相同的键。 例如，如果在代码中的某个地方将某个键称为“text fonts”，请不要在其他地方将其称为“Text Fonts”。
+  除大小写外，避免使用相同的键名。例如，如果有一个名为“MainWindow”的键，请不要尝试将另一个键储存为“mainwindow”。
+  不要在节或键名中使用斜杠（'/' 和 '\'）； 反斜杠字符用于分隔子键。 在 Windows 上，'\' 被 QSettings 转换为 '/'，这使得它们相同。
+  可以使用“/”字符作为分隔符来形成分层键，类似于 Unix 文件路径。 例如：
+
+  ```c++
+  QSettings settings("program.ini", QSettings::IniFormat);
+  settings.setValue("mainwindow/size", w.size());
+  settings.setValue("mainwindow/fullScreen", w.isFullScreen());
+  settings.setValue("outputpanel/visible", w.isVisible());
+  ```
+
+  **QSettings 通常用于存储 GUI 应用程序的状态。**
+
+##### 获取QT中枚举实际的字符串值
+
+首先将枚举注册`Q_ENUM(...)`，然后使用`QMetaEnum`类型，创建一个对象`mete`，`mate.valueToKey(static_cast<int>(枚举值))`
+
+##### 一般在项目中的获取QML对象结构
+
+创建一个类专门用来管理上下文对象，其中添加变量`QQmlContext`用来代表qml上下文与其交互，`QObject*`存储上下文对象中获取的`main.qml`
+
+##### 锁
+
+Qt提供了QMutext(具体情况具体分析判断是否需要定义为静态变量)、QMutexLocker、QReadWriteLock、QwaitCondition、QSemaphore等多种类用于实现线程之间的同步
+
+* 使用`QMutex`完成锁，该变量一般作为成员变量，`mutex.lock()`和`mutex.unlock`需要在函数中手动调用
+* 使用`QMutexLocker`完成锁，该变量一般作为函数局部变量，`QMutexLocker locker(mutex)`，在函数结束时自动析构释放锁。

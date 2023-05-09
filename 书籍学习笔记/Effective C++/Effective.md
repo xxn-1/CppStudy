@@ -1535,3 +1535,45 @@ int main() {
 
 
 
+##### 借助流迭代器初始化
+
+使用流可以直接把一个文件或者一些列输出初始化到一个容器中
+
+`istream_iterator`
+
+
+
+#### 几个模板的使用
+
+* `function`包装函数
+
+* `mem_fn`传入类成员函数的地址，将类的成员函数转变成一个普通函数，返回一个新的函数句柄，该函数句柄的第一个参数需要传入一个该类类型对象的地址。
+
+  ```c++
+  Foo f;
+  auto greet = std::mem_fn(&Foo::display_greeting);
+  greet(&f);
+  void Foo::display_greeting() {
+         std::cout << "Hello, world.\n";
+  }
+  ```
+
+  
+
+* `result_of`可以在编译时获取函数返回类型。
+
+  ```c++
+  result <函数名(函数参数类型列表)>::type //这是一个类型
+  ```
+
+  
+
+  
+
+* `enable_if`
+
+* `bind`：将某些参数绑定到函数上形成新的函数句柄
+
+* `std::not1`将一元谓词结果取反
+
+* `std::not2`将二元谓词结果取反
