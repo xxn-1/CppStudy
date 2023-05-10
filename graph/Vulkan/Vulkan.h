@@ -16,7 +16,8 @@ public:
 
     // Vulkan
     void vulkanDeals();
-    bool vulkanCreateInstance();
+    VkBool32 vulkanCreateInstance();
+    VkBool32 vulkanCreatePhysicalDevices();
 
 private:
     // vars
@@ -24,7 +25,12 @@ private:
     VkInstance instance;
     int width, height;
     const char *title;
+    // std::vector<VkPhysicalDevice> physicalDevices;
+    VkPhysicalDevice physicalDevice;
 
 private:
     std::vector<const char *> vulkanGetInstanceExt();
+    std::vector<VkPhysicalDevice> vulkanGetPhyDevices();
+    VkPhysicalDevice vulkanSelectSuitable(const std::vector<VkPhysicalDevice> &);
+
 } VulkanDemo;

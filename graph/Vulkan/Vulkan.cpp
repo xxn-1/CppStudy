@@ -41,9 +41,10 @@ void VulkanDemo::glfwDealEvents()
 void VulkanDemo::vulkanDeals()
 {
     vulkanCreateInstance();
+    vulkanCreatePhysicalDevices();
 }
 
-bool VulkanDemo::vulkanCreateInstance()
+VkBool32 VulkanDemo::vulkanCreateInstance()
 {
     count_ version;
     vkEnumerateInstanceVersion(&version);
@@ -75,7 +76,19 @@ bool VulkanDemo::vulkanCreateInstance()
     {
         throw CreateInstanceError();
     }
-    return true;
+    return VK_TRUE;
+}
+
+VkBool32 VulkanDemo::vulkanCreatePhysicalDevices()
+{
+    vector<VkPhysicalDevice> pds = vulkanGetPhyDevices();
+    VkPhysicalDevice pd = vulkanSelectSuitable(pds);
+    if (pd)
+    {
+        physicalDevice = pd;
+        return VK_TRUE;
+    }
+    return VK_FALSE;
 }
 
 vector<const char *> VulkanDemo::vulkanGetInstanceExt()
@@ -89,11 +102,46 @@ vector<const char *> VulkanDemo::vulkanGetInstanceExt()
     // static vector<VkExtensionProperties> exts(instanceExtCount);
 
     // vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtCount, exts.data());
-
+    cout << "检查扩展中" << endl;
     for (const auto &x : extensions)
     {
         cout << x << endl;
     }
 
     return extensions;
+}
+
+vector<VkPhysicalDevice> VulkanDemo::vulkanGetPhyDevices()
+{
+    count_ phySize = 0;
+    vkEnumeratePhysicalDevices(instance, &phySize, nullptr);
+    vector<VkPhysicalDevice> phyDevices(phySize);
+    if (phySize != 0)
+    {
+        vkEnumeratePhysicalDevices(instance, &phySize, phyDevices.data());
+        cout << "枚举物理设备" << endl;
+        for (const auto &x : phyDevices)
+        {
+            cout << x << endl;
+        }
+    }
+    return phyDevices;
+}
+
+VkPhysicalDevice VulkanDemo::vulkanSelectSuitable(const vector<VkPhysicalDevice> &_pds)
+{
+    VkPhysicalDeviceProperties vkpdPs;
+    VkPhysicalDeviceFeatures vkpdFs;
+    for (const auto &_pd : _pds)
+    {
+        vkGetPhysicalDeviceProperties(_pd, &vkpdPs);
+        vkGetPhysicalDeviceFeatures(_pd, &vkpdFs);
+        if (vkpdPs.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && vkpdFs.geometryShader == VK_TRUE)
+        {
+            cout << "物理设备名" << endl;
+            cout << vkpdPs.deviceName << endl;
+            return _pd;
+        }
+    }
+    return VK_NULL_HANDLE;
 }

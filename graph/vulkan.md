@@ -662,7 +662,7 @@ VKAPI_ATTR 返回类型 VKAPI_CALL 函数名() {
 
 * `vkGetPhysicalDeviceFeatures`查询对纹理压缩，64位浮点数和多视图渲染(VR非常有用)等可选功能的支持:
 
-* `VkPhysicalDeviceFeatures`物理设备特性类
+* `VkPhysicalDeviceFeatures`物理设备特性类，**可以判断设备具体的支持某种特性否**
 
 * `vkEnumeratePhysicalDevices`枚举所有物理设备
 
