@@ -280,10 +280,132 @@ int main()
 
 
 
-#### istreambuf_iterator
+#### istreambuf_iterator|ostreambuf_iterator
 
 和`istream_iterator`的区别：
 
 该流可以原封不动的把输入的字符输出，包括空白字符
 
-而`istream_iterato`会忽略空白。
+而`istream_iterato`会忽略空白。  
+
+---
+
+**`istreambuf_iterator<char>`流非常适合读取文件。可以保存文件格式，且效率比`istream`流更快速**
+
+#### const_iterator转换为iterator
+
+方法：`advance`+`distance`：使得迭代器向前移动某个距离单位。已知容器对象和`const_iterator`对象
+
+```c++
+// v是容器,citer是已知的const_iterator
+通过创建一个iterator指向v.begin()
+iterator iter = v.begin();
+advance(iter,distance<const_Iterator>(iter,citer))
+```
+
+#### reverse_iterator转换为iterator
+
+通过`base`函数，但是注意：base函数转化为的`iterator`是`reverse_iterator`的位置的后一位。
+
+如果要删除`reverse_iterator`处的元素，因为删除时必须转化为`iterator`，所以需要使用`erase((++r).base())`
+
+#### STL算法的使用
+
+##### back_inserter/front_inserter/inserter
+
+使用迭代器的算法在向容器中添加元素时，为了使得随着算法的运行增大空间，必须告诉容器目前正在添加元素，必须使用**本标题中三个函数转换迭代器**。如果已知要添加的元素的数量，**那么提前使用reverse来预留足够的空间**
+
+##### 排序算法
+
+* `partial_sort`：仅需要部分排序的情况下使用，只排出前`n`的元素,**注意，这前n的元素是排好序的**。partial_sort() 会将 [first, last) 范围内最小（或最大）的 middle-first 个元素移动到 [first, middle) 区域中
+
+  ```
+  partial_sort(w.begin(),w.begin()+n,w.end(),cmp);
+  ```
+
+* `nth_element`：排序一个区间，使得位置n上的元素正好是全排序状态下的第n个元素。**并且，所有全排序的元素。**
+
+  `nth_element(w.begin(),w.begin()+n-1,w.end(),cmp)`
+
+  重新排列[first，last]范围内的元素，使得第n个位置的元素是在排序序列中处于该位置的元素。
+
+  除了nth之前的元素都不大于它之外，其他元素没有任何特定的顺序，并且其后面的元素都不会更少。
+
+**注意这两者区别**
+
+* `nth_element`前`n`个元素在整个元素中看是排序的，但是内部是无序的
+* `nth_element`函数第二个参数表明要排的第n个元素，不是区间`mid`的意思，故`n`是右闭的意思，注意`-1`
+
+---
+
+* `sort`、`nth_element`、`partial_sort`都属于非稳定算法
+
+* `partition`分区/`stable_partition`
+
+消耗资源排序：`partition < partial_sort < stable _partition < sort < nth_element < stable_sort`
+
+##### remove|unique算法
+
+STL的泛型remove算法并不能真正的删除容器中的元素，要想删除容器中的元素，**只能调用容器的成员函数`erase`**，`remove`仅仅把不需要的值移动到容器迭代器的末尾之后，而容器本身元素数量不变。所以如果想真正的`remove`，必须在`remove`之后再次调用`erase`。形式如下：
+
+`v.erase(remove(v.begin(),v.end(),value),v.end())`
+
+**另外注意，各种容器都内置了`erase`，特殊的，只有`list`内置了`remove`常用函数。这个成员函数真正的删除了元素，在`list`容器中，推荐使用`remove`来删除元素。**
+
+---
+
+`unique`的算法特性类似`remove`
+
+---
+
+###### 注意事项
+
+若是容器中存储的是`new`来的普通指针（不是智能指针）。那么不能直接使用`erase+remove`的方式，需要先提前删除想要删除的指针并置空
+
+```c++
+void check(Type* &t) {
+	if(!isCertified(t)){
+        delete t;
+        t = nullptr;
+    }
+}
+for_each(v.begin(),v.end(),check);
+v.erase(remove(v.begin(),v.end(),static_cast<Type*>(0)),v.end());
+```
+
+**智能指针可以直接使用`erase+remove`**
+
+---
+
+##### 需要提前排好序才能使用的算法
+
+**注意排序时使用的cmp和下列算法使用的cmp要相同才能保持行为一致**
+
+**二分查找**
+
+* `binary_search`
+* `upper_bound`
+* `lower_bound`
+* `equal_range`
+
+**集合操作，排好序才能保证性能**
+
+* `set_union`
+* `set_difference`
+* `set_intersection`
+* `set_symmetric_difference`
+
+合并两个区间
+
+* `merge`
+* `inplace_merge`
+
+判断一个区间元素是否在另一个区间中
+
+* `includes`
+
+下面两个算法可以在不排序状态下使用，但是排好序的状态下效率更高。
+
+* `unique`
+* `unique_copy`
+

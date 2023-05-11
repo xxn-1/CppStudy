@@ -2565,3 +2565,7 @@ Qt提供了QMutext(具体情况具体分析判断是否需要定义为静态变�
 
 * 使用`QMutex`完成锁，该变量一般作为成员变量，`mutex.lock()`和`mutex.unlock`需要在函数中手动调用
 * 使用`QMutexLocker`完成锁，该变量一般作为函数局部变量，`QMutexLocker locker(mutex)`，在函数结束时自动析构释放锁。
+
+##### connect
+
+` connect(ui->pushButton_2,&QPushButton::clicked,this,&::MainWindow::pushButon2_clicked); `
