@@ -1,0 +1,10 @@
+{
+    "version": "0.2.1",
+    "tasks": [{
+        "taskLabel": "任务-split",
+        "appliesTo": "Usually/split.cc",
+        "type": "launch",
+        "args": ["-g", "${file}", "-o", "${fileDirname}/${fileBasenameNoExtension}.exe"]
+
+    }]
+}

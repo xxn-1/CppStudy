@@ -380,7 +380,7 @@ $$
 
 * `vkDestroyInstance(instance,nullptr)`第二个参数是内存分配器，如果创建时使用了分配器，那么删除的时候也需要提供一个与之兼容的 `VkAllocationCallbacks`。第一个输入参数 可以是NULL，或者一个合法的` VkInstance`句柄
 
-* `vkEnumerateInstanceExtensionProperties`枚举**实例**扩展
+* `vkEnumerateInstanceExtensionProperties`枚举**实例**扩展。<font color="red">结构通常是，先有一个函数获得枚举可用扩展，在这个函数结尾调用一个函数获取自己需要的扩展push到当前已枚举扩展中。</font>
 
 * `vkEnumerateDeviceExtensionProperties()`枚举**物理设备**扩展
 
@@ -500,7 +500,7 @@ std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtens
 
 Vulkan已经内置了各种类型的命令指针，**格式为**：`PFN_命令名`可以强制转化返回的指针为该类型
 
-所有Vulkan命令的函数指针可以通过以下获取，**返回的指针必须强制转化为要查询的实际的指针函数**：
+所有Vulkan命令的函数指针可以通过以下获取，<font color="red">针对的是扩展的命令，如创建一个扩展对象都要使用该命令获取函数</font>，**返回的指针必须强制转化为要查询的实际的指针函数**：
 
 * `vkGetInstanceProcAddr`实例层面的函数指针**对这个实例所拥有的所有对象都有效**
 * `vkGetDeviceProcAddr`设备层面的函数指针，**只能在查询这个函数指针的逻辑设备上使用该指针。**
@@ -593,6 +593,16 @@ VKAPI_ATTR 返回类型 VKAPI_CALL 函数名() {
 * `VkDebugReportCallbackCreateInfoEXT` 或`VkDebugUtilsMessengerCreateInfoEXT` 结构链接到给予 `vkCreateInstance 函数中的`的` VkInstanceCreateInfo` 结构的 pNext 元素。可以捕获创建或销毁实例时发生的事件，其中会**传入一个回调函数**。
 * `VkValidationFlagsEXT`可以选择希望实例希望将要禁用验证检查
 * `VkValidationFeaturesEXT`指定要启用或要禁用的验证特性
+
+
+
+##### 回调函数
+
+**VKAPI_ATTR**和**VKAPI_CALL**确保了正确的函数签名，从而被Vulkan调用。
+
+```cpp
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(){}
+```
 
 ### 选择物理设备
 
@@ -840,6 +850,83 @@ Vulkan里的设备内存是指，设备能够访问到并且用作纹理和其�
 #### 扩展物理设备核心功能
 
 当物理设备版本大于或等于添加了新功能的 Vulkan 版本时，可以使用新的核心物理设备级功能。物理设备支持的 Vulkan 版本可以通过调用，物理设备支持的 Vulkan 版本可以通过调用 `vkGetPhysicalDeviceProperties` 获得。
+
+### 验证层
+
+
+
+可选组件，可以挂载到vulkan函数中，回调其他操作。
+
+`Validation layers`的常见操作情景有:
+
+- 根据规范检查参数数值，最终确认是否存与预期不符的情况
+- 跟踪对象的创建和销毁，以查找是否存在资源的泄漏
+- 跟踪线程的调用链，确认线程执行过程中的安全性
+- 将每次函数调用所使用的参数记录到标准的输出中，进行初步的Vulkan概要分析
+
+**要先表明以下代码**
+
+```c++
+#ifdef NDEBUG // C++标准宏定义，仅在调试模式下开启
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
+const std::vector<const char*> validationLayers = {
+    "VK_LAYER_LUNARG_standard_validation" // 声明自己要开启的层，之后枚举可用层，判断自己想开启的层是否可用，是一个列表，我们判断自己想开启的层是否可用时，当且仅当想开启的所有层都可用才有效，否则是不可用的。
+};
+```
+
+* `vkEnumerateInstanceLayerProperties`枚举可用的层
+
+  >
+  >
+  ><font color="black">单纯开启`validation layers`是没有任何帮助的，因为到现在没有任何途径将诊断信息回传给应用程序。要接受消息，我们必须设置回调，需要**VK_EXT_debug_report**扩展，扩展push到创建instance时的info中来添加。我们往Vector<const char*>push扩展时，只需要push扩展名格式为：`VK_EXT_XXX_XXX_EXTENSION_NAME`</font>注意我们
+
+##### 回调函数
+
+回调句柄类型：**`Vk扩展名CallbackEXT`**
+
+* `Vk扩展名CallbackEXT`作为成员函数储存回调函数
+
+* `Vk扩展名CallbackCreateInfoEXT`回调函数创建需要的参数
+
+  其中info类型的 `flags`**属性指定过滤掉不希望的信息，**`pfnCallback`字段描述了回调函数的指针，`pUserData`**作为回调的自定义数据结构使用。**
+
+  该结构体应该传递给**vkCreateDebugReportCallbackEXT**函数创建**VkDebugReportCallbackEXT**对象，该功能是一个扩展功能，它不会被自动加载。所以必须使用**vkGetInstanceProcAddr**查找函数地址。我们将在后台创建代理函数。在**HelloTriangleApplication**类定义之上添加它。
+
+* `vkGetInstanceProcAddr(instance, "vkCreate扩展名CallbackEXT")`获取函数指针
+
+* `vkCreate扩展名CallbackEXT`对应的回调函数创建命令
+
+* `vkGetInstanceProcAddr(instance, "vkDestroy扩展名CallbackEXT");`
+
+**添加好扩展后，添加回调函数，回调函数的格式同PFN_vk扩展CallbackEXT函数一致**：
+
+```c++
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugReportFlagsEXT flags,
+    VkDebugReportObjectTypeEXT objType,
+    uint64_t obj,
+    size_t location,
+    int32_t code,
+    const char* layerPrefix,
+    const char* msg,
+    void* userData) {
+
+    std::cerr << "validation layer: " << msg << std::endl;
+
+    return VK_FALSE;
+}
+参数列表讲解：
+    1. 第一个参数一般为flag，类型是 -- <Vk扩展名FlagsEXT>。可以是这些标志的组合
+    2. 是一个Type，类型是 -- Vk扩展名ObjectTypeEXT，objType参数描述作为消息主题的对象的类型，比如一个obj是VkPhysicalDevice，那么objType就是VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT。
+    ...
+    最后一个参数pUserData是一个指向了我们设置回调函数时，传递的数据的指针
+返回值：回调返回一个布尔值，表明触发validation layer消息的Vulkan调用是否应被中止。如果返回true，则调用将以VK_ERROR_VALIDATION_FAILED_EXT错误中止。这通常用于测试validation layers本身，所以我们总是返回VK_FALSE。 
+```
+
+
 
 ### 逻辑设备
 
