@@ -3,6 +3,7 @@
 #include <cstring>
 using namespace std;
 using count_ = uint32_t;
+#define NEWLINE std::cout<<std::endl
 //#undef NDEBUG
 #undef NDEBUG
 #ifdef NDEBUG
@@ -73,6 +74,8 @@ VkBool32 VulkanDemo::vulkanCreateInstance()
 	std::cout << "Supported Vulkan Version is " << VK_VERSION_MAJOR(version)
 			  << '.' << VK_VERSION_MINOR(version) << '.'
 			  << VK_VERSION_PATCH(version) << '\n';
+	NEWLINE;
+
 	VkApplicationInfo applicationinfo{
 			VK_STRUCTURE_TYPE_APPLICATION_INFO, nullptr, "my Vulkan Demo1",
 			VK_MAKE_VERSION(1, 3, 0), "no Engine", VK_MAKE_VERSION(1, 3, 0),
@@ -133,6 +136,7 @@ vector<const char *> VulkanDemo::vulkanGetInstanceExt()
 		cout << x << endl;
 	}
 	cout << "检查结束" << endl;
+	NEWLINE;
 
 
 	return extensions;
@@ -151,6 +155,8 @@ vector<VkPhysicalDevice> VulkanDemo::vulkanGetPhyDevices()
 		}
 	}
 	cout << "枚举结束" << endl;
+	NEWLINE;
+
 	return phyDevices;
 }
 
@@ -170,6 +176,8 @@ VulkanDemo::vulkanSelectSuitable(const vector<VkPhysicalDevice> &_pds)
 			return _pd;
 		}
 	}
+	NEWLINE;
+
 	return VK_NULL_HANDLE;
 }
 
@@ -200,14 +208,16 @@ bool VulkanDemo::vulkanSelectLayers()
 		VkBool32 tmp = VK_FALSE;
 		for (const auto &layer: layers) {
 			cout << layer.layerName << endl;
-			if (strcmp(x, layer.layerName) == 0) {
+			if (std::strcmp(x, layer.layerName) == 0) {
 				tmp = VK_TRUE;
 				break;
 			}
 		}
 		if (!tmp)return false;
 	}
-	cout << "layers available" << endl;
+	cout << "Layers available" << endl;
+	NEWLINE;
+
 	return true;
 }
 
@@ -236,6 +246,7 @@ VKAPI_CALL VulkanDemo::vulkanDebugExtCall(VkDebugReportFlagsEXT flags, VkDebugRe
 										  void *userData)
 {
 	std::cerr << "validation layer: " << msg << std::endl;
+	NEWLINE;
 	return VK_FALSE;
 }
 
